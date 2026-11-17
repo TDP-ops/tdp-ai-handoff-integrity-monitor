@@ -87,13 +87,26 @@ def compare_journey(plan, handoffs, *, file_evidence=None):
                     old_v, new_v = earlier_art.get("artifact_version_id"), now_art.get("artifact_version_id")
                     if old_v != new_v:
                         parents = now_art.get("parent_version_ids", [])
+                        contracts = [c for c in plan.get("contracts", [])
+                                     if c.get("contract_id") == now.get("contract_id")
+                                     and c.get("version") == now.get("contract_version")
+                                     and c.get("from_step") == now.get("from_step")
+                                     and c.get("to_step") == now.get("to_step")]
+                        modification_permitted = (
+                            len(contracts) == 1
+                            and "modified" in contracts[0].get("allowed_lifecycle_events", [])
+                        )
                         events = [e for e in now.get("lifecycle_events", [])
                                   if e.get("event_type") == "modified"
                                   and e.get("artifact_id") == aid
-                                  and e.get("artifact_version_id") == new_v]
-                        if old_v not in parents or not events:
+                                  and e.get("artifact_version_id") == new_v
+                                  and e.get("step_id") == now.get("from_step")]
+                        if old_v not in parents or not events or not modification_permitted:
                             issues.append(finding("VERSION_ROLLBACK", "ALERT", aid,
-                                                  "Unexplained inter-hop version change"))
+                                                  "Version transition lacks applicable parent, event or policy"))
+                        elif any(e.get("authorized_by_policy") is False for e in events):
+                            issues.append(finding("UNDECLARED_TRANSFORMATION", "ALERT", aid,
+                                                  "Modification expressly unauthorized"))
                         else:
                             issues.append(finding("UNVERIFIABLE", "UNKNOWN", aid,
                                                   "Version transition declared but not authenticated"))
