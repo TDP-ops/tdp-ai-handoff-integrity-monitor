@@ -187,6 +187,17 @@
       "expected_code": "HANDOFF_INTEGRITY_VERIFIED",
       "synthetic": true,
       "engine_implemented": false
+    },
+    {
+      "id": "REPLAYED_EVENT_ID",
+      "description": "same event_id reused for a distinct transmission observation within one run",
+      "rules": [
+        "CR-02"
+      ],
+      "expected_verdict": "ALERT",
+      "expected_code": "DUPLICATE_OR_UNEXPECTED",
+      "synthetic": true,
+      "engine_implemented": false
     }
   ]
 }
