@@ -24,4 +24,8 @@ jobs:
           test -f README.md
           test -f .gitignore
           test -f .github/workflows/ci.yml
-          ! git ls-files | grep -E '(^|/)(\.env($|\.)|secrets/|client_data/|raw_traces/|production_traces/)' 
+          ! git ls-files | grep -E '(^|/)(\.env($|\.)|secrets/|client_data/|raw_traces/|production_traces/)'
+      - name: Install JSON Schema validator
+        run: python3 -m pip install --user 'jsonschema==4.23.0'
+      - name: Validate V0 contract schema and fixtures
+        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
