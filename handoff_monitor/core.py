@@ -119,6 +119,11 @@ def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=N
         if a.get("parent_version_ids", []) != b.get("parent_version_ids", []) or a.get("replaces_artifact_id") != b.get("replaces_artifact_id"):
             issues.append(finding("BROKEN_REFERENCE", "ALERT", aid, "Lineage differs"))
         ac, bc = a.get("checks", {}), b.get("checks", {})
+        # The receiver cannot silently remove or weaken declared controls.
+        # Equal declarations are still claims, not independently audited policy.
+        if ac != bc:
+            issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", aid,
+                                  "Artifact check declarations differ across handoff"))
         unsupported = any(c.get("required_structure") or c.get("quality_invariants") for c in (ac, bc))
         if unsupported:
             issues.append(finding("UNVERIFIABLE", "UNKNOWN", aid, "Parser or metric not implemented"))
