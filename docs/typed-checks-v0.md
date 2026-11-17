@@ -47,6 +47,6 @@ Each declared rule is scoped to an artifact version and handoff contract. An ext
 
 ## Stability
 
-The `checks.required_structure` and `checks.quality_invariants` fields are now **arrays**, replacing the previous unrestricted objects. Existing published lot 1 fixtures with `exact_bytes` only remain compatible. Schema strictness prevents silent unknown check types but does not guarantee cross-field compatibility with `artifact.kind`; that belongs to the runtime.
+The `checks.required_structure` and `checks.quality_invariants` fields are now **arrays**, replacing the previous unrestricted objects. Existing published lot 1 fixtures with `exact_bytes` only remain compatible. Schema strictness rejects unsupported check types **and incompatible combinations with `artifact.kind`** using conditional JSON Schema constraints. Runtime execution, extractor provenance, authorization and independent evidence verification remain separate obligations.
 
 This project is public, synthetic and independent of TFE, SignalForge and internal TDP systems.
