@@ -94,6 +94,41 @@ class JourneyTests(unittest.TestCase):
         self.assertEqual("UNKNOWN", self.result()["verdict"])
         self.assertNotIn("VERSION_ROLLBACK", self.codes(self.result()))
 
+    def test_wrong_step_modification_is_alert(self):
+        for role in ("sent", "received"):
+            self.hops[1][role]["artifacts"][0]["artifact_version_id"] = "v2"
+            self.hops[1][role]["artifacts"][0]["parent_version_ids"] = ["v1"]
+        self.hops[1]["sent"]["lifecycle_events"] = [{
+            "event_id": "change-wrong-step", "artifact_id": "a",
+            "artifact_version_id": "v2", "event_type": "modified",
+            "step_id": "C", "authorized_by_policy": True,
+        }]
+        result = self.result()
+        self.assertIn("VERSION_ROLLBACK", self.codes(result))
+
+    def test_modification_not_permitted_by_contract_is_alert(self):
+        self.plan["contracts"][1]["allowed_lifecycle_events"].remove("modified")
+        for role in ("sent", "received"):
+            self.hops[1][role]["artifacts"][0]["artifact_version_id"] = "v2"
+            self.hops[1][role]["artifacts"][0]["parent_version_ids"] = ["v1"]
+        self.hops[1]["sent"]["lifecycle_events"] = [{
+            "event_id": "change-forbidden", "artifact_id": "a",
+            "artifact_version_id": "v2", "event_type": "modified",
+            "step_id": "B", "authorized_by_policy": True,
+        }]
+        self.assertIn("VERSION_ROLLBACK", self.codes(self.result()))
+
+    def test_explicitly_unauthorized_modification_is_alert(self):
+        for role in ("sent", "received"):
+            self.hops[1][role]["artifacts"][0]["artifact_version_id"] = "v2"
+            self.hops[1][role]["artifacts"][0]["parent_version_ids"] = ["v1"]
+        self.hops[1]["sent"]["lifecycle_events"] = [{
+            "event_id": "change-denied", "artifact_id": "a",
+            "artifact_version_id": "v2", "event_type": "modified",
+            "step_id": "B", "authorized_by_policy": False,
+        }]
+        self.assertIn("UNDECLARED_TRANSFORMATION", self.codes(self.result()))
+
     def test_missing_middle_hop_is_alert(self):
         self.hops.pop(1)
         self.assertEqual("ALERT", self.result()["verdict"])
