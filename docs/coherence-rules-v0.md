@@ -46,9 +46,9 @@ A valid JSON object is not sufficient evidence of a successful handoff. An issue
 - Even if a rejected artifact is no longer required at a later step, the event and its earlier IDs/versions remain in immutable history.
 - Trust boundaries: `sender` and `receiver` claims are both untrusted assertions until bound to an independent observation. No self-attested `hash_computed_from_bytes=true` can force `PASS`.
 
-## Schema limitations to resolve before lot 1 exit
+## Schema boundaries and implementation obligations
 
-1. The schema currently allows free-form `checks.required_structure` and `quality_invariants`. These are **not executable checks** and their detailed type-specific representations need explicit, versioned definitions before an engine consumes them.
+1. The schema now restricts `checks.required_structure` and `quality_invariants` to a **typed V0 vocabulary**; see `docs/typed-checks-v0.md`. They are still declarative only, not executable. In particular the metric algorithms must be specified and implemented before any PASS result.
 2. `authorized_by_policy` is a boolean **claim**, not proof of an actual policy grant. Cross-record policy evidence and version matching are mandatory.
 3. `content_sha256`, `artifact_version_id`, and `observation` can be syntactically valid yet misleading. The schema cannot prove received bytes are independently observed.
 4. A `sent` manifest and `received` manifest may share the same `handoff_id`; their `event_id` must be distinct. `event_id` uniqueness and cross-record duplication cannot be enforced by JSON Schema alone.
