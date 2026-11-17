@@ -114,3 +114,70 @@ def check_lifecycle(sent, received, contract, policy_grants=None):
             if old and old not in contract.get("allowed_replacements", []):
                 issues.append(finding("UNAUTHORIZED_REPLACEMENT", "ALERT", aid, "Old ID not permitted for replacement"))
     return issues
+
+
+def check_replacements(left, right, received, contract, policy_grants=None):
+    """Return (recognized_old_ids, recognized_new_ids, findings).
+
+    This accepts only explicit one-to-one old->new declarations, with a
+    matching active contract, replacement event and explicit new version.
+    Even a matching caller-supplied grant is NOT independently authenticated:
+    a valid substitution therefore remains UNKNOWN at this trust boundary.
+    """
+    issues = []
+    recognized_old = set()
+    recognized_new = set()
+    added = set(right) - set(left)
+    removed = set(left) - set(right)
+    declared = [e for e in received.get("lifecycle_events", [])
+                if e.get("event_type") == "replaced"]
+    used_old = set()
+    seen_new = set()
+    for event in declared:
+        new = event.get("artifact_id")
+        old = event.get("replaces_artifact_id")
+        if new in seen_new or old in used_old:
+            issues.append(finding("DUPLICATE_OR_UNEXPECTED", "ALERT", new,
+                                  "Replacement not one-to-one"))
+            continue
+        seen_new.add(new)
+        if old:
+            used_old.add(old)
+        if not new or not old or new == old:
+            issues.append(finding("ARTIFACT_ID_COLLISION", "ALERT", new,
+                                  "Replacement IDs must be distinct"))
+            continue
+        if old not in removed or new not in added:
+            issues.append(finding("UNAUTHORIZED_REPLACEMENT", "ALERT", new,
+                                  "Replacement must match removed source and added destination"))
+            continue
+        if right[new].get("replaces_artifact_id") != old:
+            issues.append(finding("BROKEN_REFERENCE", "ALERT", new,
+                                  "Destination artifact does not identify replaced source"))
+            continue
+        if (old not in contract.get("allowed_replacements", [])
+                or "replaced" not in contract.get("allowed_lifecycle_events", [])):
+            issues.append(finding("UNAUTHORIZED_REPLACEMENT", "ALERT", new,
+                                  "Replacement not permitted by active contract"))
+            continue
+        if right[new].get("artifact_version_id") not in contract.get("accepted_versions", {}).get(new, []):
+            issues.append(finding("STALE_ARTIFACT_VERSION", "ALERT", new,
+                                  "Replacement version not explicitly accepted"))
+            continue
+        if event.get("authorized_by_policy") is not True:
+            issues.append(finding("UNAUTHORIZED_REPLACEMENT", "ALERT", new,
+                                  "No declared authorization"))
+            continue
+        if policy_grants is None:
+            issues.append(finding("UNVERIFIABLE", "UNKNOWN", new,
+                                  "Missing independent replacement policy grant"))
+            continue
+        if (event.get("policy_ref"), "replaced", new) not in policy_grants:
+            issues.append(finding("UNAUTHORIZED_REPLACEMENT", "ALERT", new,
+                                  "Replacement policy grant does not match"))
+            continue
+        recognized_old.add(old)
+        recognized_new.add(new)
+        issues.append(finding("UNVERIFIABLE", "UNKNOWN", new,
+                              "Policy and receiver bytes have not been independently authenticated"))
+    return recognized_old, recognized_new, issues
