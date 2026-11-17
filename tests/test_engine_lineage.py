@@ -63,6 +63,23 @@ class LineageAndLifecycleTests(unittest.TestCase):
         self.assertIn("ARTIFACT_ID_COLLISION",
                       self.codes(check_lineage({}, {}, [first, second])))
 
+    def test_current_version_missing_from_supplied_history_is_unknown(self):
+        root = copy.deepcopy(self.sent["artifacts"][0])
+        root["artifact_version_id"] = "v0"
+        result = self.evaluate(history=[root])
+        self.assertIn("UNVERIFIABLE", self.codes(result["findings"]))
+
+    def test_current_version_parent_conflicts_with_history_is_alert(self):
+        self.sent["artifacts"][0]["parent_version_ids"] = ["v0"]
+        self.received["artifacts"][0]["parent_version_ids"] = ["v0"]
+        old = copy.deepcopy(self.sent["artifacts"][0])
+        old["artifact_version_id"] = "v0"
+        old["parent_version_ids"] = []
+        current = copy.deepcopy(self.sent["artifacts"][0])
+        current["parent_version_ids"] = []
+        result = self.evaluate(history=[old, current])
+        self.assertIn("BROKEN_REFERENCE", self.codes(result["findings"]))
+
     def test_self_replacement_is_alert(self):
         self.sent["artifacts"][0]["replaces_artifact_id"] = "a"
         self.assertIn("ARTIFACT_ID_COLLISION", self.codes(self.evaluate()["findings"]))
