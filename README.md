@@ -37,4 +37,4 @@ Do not commit API keys, environment files, private traces, client files, credent
 
 ## License
 
-**Not yet selected.** No open-source license grant is implied by public visibility. A license will be chosen before distributing reusable implementation code.
+Licensed under the [Apache License, Version 2.0](LICENSE). Third-party components, if incorporated later, will retain their applicable licenses and attribution notices.
