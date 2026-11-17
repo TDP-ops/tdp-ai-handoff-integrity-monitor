@@ -1,0 +1,8 @@
+{
+  "finding_id": "F-ALERT",
+  "handoff_id": "H-A-B",
+  "artifact_id": "ART-001",
+  "code": "HASH_MISMATCH",
+  "verdict": "ALERT",
+  "evidence_status": "observed"
+}
