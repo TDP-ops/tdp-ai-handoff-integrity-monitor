@@ -112,6 +112,9 @@ def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=N
         av, bv = a.get("artifact_version_id"), b.get("artifact_version_id")
         if a.get("kind") != b.get("kind"):
             issues.append(finding("ARTIFACT_ID_COLLISION", "ALERT", aid, "Kind differs"))
+        if a.get("required") != b.get("required") or (aid in required and a.get("required") is not True):
+            issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", aid,
+                                  "Required artifact status weakened or inconsistent"))
         if av != bv:
             issues.append(finding("VERSION_ROLLBACK", "ALERT", aid, "Version differs"))
         if av not in accepted.get(aid, []) or bv not in accepted.get(aid, []):
@@ -136,9 +139,19 @@ def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=N
             continue
         try:
             sha_a, sha_b = digest_file(sender_files[aid]), digest_file(receiver_files[aid])
+            size_a = Path(sender_files[aid]).stat().st_size
+            size_b = Path(receiver_files[aid]).stat().st_size
         except (OSError, ValueError) as error:
             issues.append(finding("UNVERIFIABLE", "UNKNOWN", aid, type(error).__name__))
             continue
+        for declaration, observed_size, role in ((a, size_a, "sender"),
+                                                  (b, size_b, "receiver")):
+            if declaration.get("size_bytes") is not None and declaration["size_bytes"] != observed_size:
+                issues.append(finding("DECLARED_SIZE_MISMATCH", "ALERT", aid,
+                                      role + " declared size differs from opened file"))
+        if a.get("size_bytes") is not None and b.get("size_bytes") is not None and a["size_bytes"] != b["size_bytes"]:
+            issues.append(finding("DECLARED_SIZE_MISMATCH", "ALERT", aid,
+                                  "Declared sizes disagree across exact-byte handoff"))
         if a.get("content_sha256") is not None and a["content_sha256"] != sha_a:
             issues.append(finding("DECLARED_HASH_MISMATCH", "ALERT", aid, "Sent digest does not match bytes"))
         if b.get("content_sha256") is not None and b["content_sha256"] != sha_b:
