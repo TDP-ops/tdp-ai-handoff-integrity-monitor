@@ -30,7 +30,7 @@ The schema is deliberately strict (`additionalProperties: false`). Field names i
 
 JSON Schema validates types and required fields only. The lot 3 engine must enforce **cross-record rules** (unique IDs, consistent version parents, valid replacements, contract revisions, allowed transitions), compare two independent observations, and compute `PASS / ALERT / UNKNOWN`. `BLOCK` is optional and requires an actual interceptable boundary.
 
-A later document may detail the exact shapes of `required_structure` and `quality_invariants` by type; these cannot be treated as verified just because the object is syntactically accepted. No model judge or paid API is required.
+Typed declaration shapes for `required_structure` and `quality_invariants` are specified in `docs/typed-checks-v0.md`; these cannot be treated as verified just because the object is syntactically accepted. Type-specific extractors and quality metrics are not implemented. No model judge or paid API is required.
 
 ## Acceptance scenarios inherited from the Perturbateur
 
