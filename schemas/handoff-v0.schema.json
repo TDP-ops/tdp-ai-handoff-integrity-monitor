@@ -108,10 +108,18 @@
               "type": "boolean"
             },
             "required_structure": {
-              "type": "object"
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/structure_check"
+              },
+              "uniqueItems": true
             },
             "quality_invariants": {
-              "type": "object"
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/quality_check"
+              },
+              "uniqueItems": true
             }
           }
         }
@@ -449,6 +457,384 @@
           "type": "string"
         }
       }
+    },
+    "structure_check": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "check_type",
+            "width_px",
+            "height_px"
+          ],
+          "properties": {
+            "check_type": {
+              "const": "image_min_dimensions"
+            },
+            "width_px": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "height_px": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "check_type",
+            "min_pages"
+          ],
+          "properties": {
+            "check_type": {
+              "const": "pdf_min_pages"
+            },
+            "min_pages": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "check_type",
+            "page_index",
+            "extracted_page_sha256",
+            "extractor_id"
+          ],
+          "properties": {
+            "check_type": {
+              "const": "pdf_required_page_sha256"
+            },
+            "page_index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "extracted_page_sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "extractor_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "check_type",
+            "paragraph_index",
+            "extracted_paragraph_sha256",
+            "extractor_id"
+          ],
+          "properties": {
+            "check_type": {
+              "const": "docx_required_paragraph_sha256"
+            },
+            "paragraph_index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "extracted_paragraph_sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "extractor_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "check_type",
+            "column_names"
+          ],
+          "properties": {
+            "check_type": {
+              "const": "csv_required_columns"
+            },
+            "column_names": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "check_type",
+            "sheet_names"
+          ],
+          "properties": {
+            "check_type": {
+              "const": "xlsx_required_sheets"
+            },
+            "sheet_names": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "check_type",
+            "sheet_name",
+            "column_names"
+          ],
+          "properties": {
+            "check_type": {
+              "const": "xlsx_required_columns"
+            },
+            "sheet_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "column_names": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "check_type",
+            "table_name"
+          ],
+          "properties": {
+            "check_type": {
+              "const": "db_required_table"
+            },
+            "table_name": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "check_type",
+            "table_name",
+            "column_name",
+            "data_type"
+          ],
+          "properties": {
+            "check_type": {
+              "const": "db_required_column"
+            },
+            "table_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "column_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "data_type": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "check_type",
+            "table_name",
+            "column_name",
+            "references_table",
+            "references_column"
+          ],
+          "properties": {
+            "check_type": {
+              "const": "db_required_foreign_key"
+            },
+            "table_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "column_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "references_table": {
+              "type": "string",
+              "minLength": 1
+            },
+            "references_column": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "check_type",
+            "pointer"
+          ],
+          "properties": {
+            "check_type": {
+              "const": "json_required_pointer"
+            },
+            "pointer": {
+              "type": "string",
+              "pattern": "^(?:|/(?:[^~/]|~[01])*)*$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "check_type",
+            "duration_ms"
+          ],
+          "properties": {
+            "check_type": {
+              "const": "audio_min_duration_ms"
+            },
+            "duration_ms": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "check_type",
+            "extracted_segment_sha256",
+            "segment_locator",
+            "extractor_id"
+          ],
+          "properties": {
+            "check_type": {
+              "const": "text_required_segment_sha256"
+            },
+            "extracted_segment_sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "segment_locator": {
+              "type": "string",
+              "minLength": 1
+            },
+            "extractor_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ],
+      "description": "Declarative required structural assertions. Each check applies only to an appropriate artifact kind; enforce kind compatibility at runtime."
+    },
+    "quality_check": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "check_type",
+            "reference_artifact_version_id",
+            "minimum_ssim",
+            "algorithm_id"
+          ],
+          "properties": {
+            "check_type": {
+              "const": "image_min_ssim"
+            },
+            "reference_artifact_version_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minimum_ssim": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "algorithm_id": {
+              "const": "ssim-skimage-v1"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "check_type",
+            "reference_artifact_version_id",
+            "maximum_ratio",
+            "algorithm_id"
+          ],
+          "properties": {
+            "check_type": {
+              "const": "image_max_blur_score_ratio"
+            },
+            "reference_artifact_version_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "maximum_ratio": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "algorithm_id": {
+              "const": "variance-of-laplacian-v1"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "check_type",
+            "sample_rate_hz"
+          ],
+          "properties": {
+            "check_type": {
+              "const": "audio_min_sample_rate_hz"
+            },
+            "sample_rate_hz": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      ],
+      "description": "Declared deterministic metrics; PASS only if the specified algorithm and independent reference evidence are available. Otherwise UNKNOWN."
     }
   }
 }
