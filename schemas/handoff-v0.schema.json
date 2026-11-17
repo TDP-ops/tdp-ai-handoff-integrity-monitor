@@ -123,7 +123,388 @@
             }
           }
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "image"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "checks": {
+                "properties": {
+                  "required_structure": {
+                    "items": {
+                      "properties": {
+                        "check_type": {
+                          "enum": [
+                            "image_min_dimensions"
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "quality_invariants": {
+                    "items": {
+                      "properties": {
+                        "check_type": {
+                          "enum": [
+                            "image_min_ssim",
+                            "image_max_blur_score_ratio"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "pdf"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "checks": {
+                "properties": {
+                  "required_structure": {
+                    "items": {
+                      "properties": {
+                        "check_type": {
+                          "enum": [
+                            "pdf_min_pages",
+                            "pdf_required_page_sha256"
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "quality_invariants": {
+                    "maxItems": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "docx"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "checks": {
+                "properties": {
+                  "required_structure": {
+                    "items": {
+                      "properties": {
+                        "check_type": {
+                          "enum": [
+                            "docx_required_paragraph_sha256"
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "quality_invariants": {
+                    "maxItems": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "csv"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "checks": {
+                "properties": {
+                  "required_structure": {
+                    "items": {
+                      "properties": {
+                        "check_type": {
+                          "enum": [
+                            "csv_required_columns"
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "quality_invariants": {
+                    "maxItems": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "xlsx"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "checks": {
+                "properties": {
+                  "required_structure": {
+                    "items": {
+                      "properties": {
+                        "check_type": {
+                          "enum": [
+                            "xlsx_required_sheets",
+                            "xlsx_required_columns"
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "quality_invariants": {
+                    "maxItems": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "db_schema"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "checks": {
+                "properties": {
+                  "required_structure": {
+                    "items": {
+                      "properties": {
+                        "check_type": {
+                          "enum": [
+                            "db_required_table",
+                            "db_required_column",
+                            "db_required_foreign_key"
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "quality_invariants": {
+                    "maxItems": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "json"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "checks": {
+                "properties": {
+                  "required_structure": {
+                    "items": {
+                      "properties": {
+                        "check_type": {
+                          "enum": [
+                            "json_required_pointer"
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "quality_invariants": {
+                    "maxItems": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "audio"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "checks": {
+                "properties": {
+                  "required_structure": {
+                    "items": {
+                      "properties": {
+                        "check_type": {
+                          "enum": [
+                            "audio_min_duration_ms"
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "quality_invariants": {
+                    "items": {
+                      "properties": {
+                        "check_type": {
+                          "enum": [
+                            "audio_min_sample_rate_hz"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "text"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "checks": {
+                "properties": {
+                  "required_structure": {
+                    "items": {
+                      "properties": {
+                        "check_type": {
+                          "enum": [
+                            "text_required_segment_sha256"
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "quality_invariants": {
+                    "maxItems": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "yaml"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "checks": {
+                "properties": {
+                  "required_structure": {
+                    "maxItems": 0
+                  },
+                  "quality_invariants": {
+                    "maxItems": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "other"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "checks": {
+                "properties": {
+                  "required_structure": {
+                    "maxItems": 0
+                  },
+                  "quality_invariants": {
+                    "maxItems": 0
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "observation": {
       "type": "object",
