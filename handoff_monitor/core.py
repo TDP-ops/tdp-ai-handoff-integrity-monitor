@@ -76,17 +76,37 @@ def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=N
             issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", explanation=role + ": " + str(sorted(missing))))
     left = index_artifacts(sent.get("artifacts", []), issues, "sent")
     right = index_artifacts(received.get("artifacts", []), issues, "received")
+    from .lineage import check_lineage, check_lifecycle, check_replacements
+    accepted_old, accepted_new, replacement_issues = check_replacements(
+        left, right, received, contract, policy_grants=policy_grants)
+    issues.extend(replacement_issues)
     required = set(contract.get("required_artifact_ids", []))
     for aid in sorted(required):
-        if aid not in left or aid not in right:
+        if aid not in left or (aid not in right and aid not in accepted_old):
             issues.append(finding("MISSING_REQUIRED_ARTIFACT", "ALERT", aid))
     for aid in sorted(set(left) ^ set(right)):
-        if aid not in required:
+        if aid not in accepted_old and aid not in accepted_new and aid not in required:
             issues.append(finding("DUPLICATE_OR_UNEXPECTED", "ALERT", aid, "Inventory changed"))
-    from .lineage import check_lineage, check_lifecycle
     issues.extend(check_lineage(left, right, history=history))
     issues.extend(check_lifecycle(sent, received, contract, policy_grants=policy_grants))
     accepted = contract.get("accepted_versions", {})
+    for aid in sorted(accepted_new):
+        a = right[aid]
+        if aid not in receiver_files:
+            issues.append(finding("UNVERIFIABLE", "UNKNOWN", aid,
+                                  "No actual replacement receiver bytes available"))
+            continue
+        try:
+            received_digest = digest_file(receiver_files[aid])
+        except (OSError, ValueError) as error:
+            issues.append(finding("UNVERIFIABLE", "UNKNOWN", aid, type(error).__name__))
+            continue
+        if a.get("content_sha256") is not None and received_digest != a["content_sha256"]:
+            issues.append(finding("DECLARED_HASH_MISMATCH", "ALERT", aid,
+                                  "Replacement digest disagrees with locally observed bytes"))
+        else:
+            issues.append(finding("UNVERIFIABLE", "UNKNOWN", aid,
+                                  "Replacement origin and authorization unverified"))
     for aid in sorted(set(left) & set(right)):
         a, b = left[aid], right[aid]
         av, bv = a.get("artifact_version_id"), b.get("artifact_version_id")
