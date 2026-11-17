@@ -39,12 +39,13 @@ def index_artifacts(items, issues, role):
     return result
 
 
-def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=None):
+def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=None, history=None, policy_grants=None):
     """Return a deterministic verdict for one boundary and local file evidence.
 
-    Does not authenticate who supplied a path. Unsupported structure/quality
-    checks result in UNKNOWN; policy lifecycle and lineage graph are not yet
-    implemented. Schema validation remains a separate input prerequisite.
+    Does not authenticate caller-supplied evidence. Unsupported file extractors
+    yield UNKNOWN; lineage and lifecycle checks are conservative and accept
+    optional historical records / grants whose provenance is caller-owned.
+    Schema validation remains a separate input prerequisite.
     """
     issues = []
     sender_files, receiver_files = sender_files or {}, receiver_files or {}
@@ -82,6 +83,9 @@ def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=N
     for aid in sorted(set(left) ^ set(right)):
         if aid not in required:
             issues.append(finding("DUPLICATE_OR_UNEXPECTED", "ALERT", aid, "Inventory changed"))
+    from .lineage import check_lineage, check_lifecycle
+    issues.extend(check_lineage(left, right, history=history))
+    issues.extend(check_lifecycle(sent, received, contract, policy_grants=policy_grants))
     accepted = contract.get("accepted_versions", {})
     for aid in sorted(set(left) & set(right)):
         a, b = left[aid], right[aid]
