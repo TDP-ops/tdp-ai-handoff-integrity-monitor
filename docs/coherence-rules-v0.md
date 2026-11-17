@@ -48,7 +48,7 @@ A valid JSON object is not sufficient evidence of a successful handoff. An issue
 
 ## Schema boundaries and implementation obligations
 
-1. The schema now restricts `checks.required_structure` and `quality_invariants` to a **typed V0 vocabulary**; see `docs/typed-checks-v0.md`. They are still declarative only, not executable. In particular the metric algorithms must be specified and implemented before any PASS result.
+1. The schema now restricts `checks.required_structure` and `quality_invariants` to a **typed V0 vocabulary**; see `docs/typed-checks-v0.md`. They are still declarative only, not executable; JSON Schema now also rejects cross-kind declarations (for example a PDF page check on an image). In particular the metric algorithms must be specified and implemented before any PASS result.
 2. `authorized_by_policy` is a boolean **claim**, not proof of an actual policy grant. Cross-record policy evidence and version matching are mandatory.
 3. `content_sha256`, `artifact_version_id`, and `observation` can be syntactically valid yet misleading. The schema cannot prove received bytes are independently observed.
 4. A `sent` manifest and `received` manifest may share the same `handoff_id`; their `event_id` must be distinct. `event_id` uniqueness and cross-record duplication cannot be enforced by JSON Schema alone.
