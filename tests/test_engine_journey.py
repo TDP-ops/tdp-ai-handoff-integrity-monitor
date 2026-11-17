@@ -129,6 +129,35 @@ class JourneyTests(unittest.TestCase):
         }]
         self.assertIn("UNDECLARED_TRANSFORMATION", self.codes(self.result()))
 
+    def test_interhop_required_exact_bytes_cannot_be_dropped(self):
+        # B receives exact byte obligation, but B sends no checks to C.
+        self.hops[1]["sent"]["artifacts"][0]["checks"] = {}
+        result = self.result()
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("MISSING_REQUIRED_RULE", self.codes(result))
+
+    def test_interhop_structure_requirement_cannot_be_dropped(self):
+        requirement = {"check_type": "pdf_min_pages", "min_pages": 3}
+        self.hops[0]["received"]["artifacts"][0]["checks"]["required_structure"] = [requirement]
+        self.hops[0]["sent"]["artifacts"][0]["checks"]["required_structure"] = [requirement]
+        # B -> C does not carry the previous receiver's requirement.
+        result = self.result()
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("MISSING_REQUIRED_RULE", self.codes(result))
+
+    def test_interhop_equal_checks_do_not_trigger_weakening_alert(self):
+        requirement = {"check_type": "pdf_min_pages", "min_pages": 3}
+        for hop in self.hops:
+            for role in ("sent", "received"):
+                hop[role]["artifacts"][0]["checks"]["required_structure"] = [requirement]
+        self.assertNotIn("MISSING_REQUIRED_RULE", self.codes(self.result()))
+
+    def test_missing_digest_between_hops_is_unknown_not_proven_tampering(self):
+        self.hops[0]["received"]["artifacts"][0]["content_sha256"] = "a" * 64
+        result = self.result()
+        self.assertEqual("UNKNOWN", result["verdict"])
+        self.assertIn("UNVERIFIABLE", self.codes(result))
+
     def test_missing_middle_hop_is_alert(self):
         self.hops.pop(1)
         self.assertEqual("ALERT", self.result()["verdict"])
