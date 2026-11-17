@@ -50,6 +50,13 @@ The new synthetic tests exercise the guards but cannot establish remote receiver
 - A previously declared digest that disappears at the next sender yields `UNVERIFIABLE` / `UNKNOWN` for that observation, not an unproven tampering accusation; conflicting digests for the same version still raise `ARTIFACT_ID_COLLISION`.
 - Four synthetic regression tests were added. CI execution and independently authenticated custody are still outstanding.
 
+## Tranche 7 — required status and size declaration
+
+- A required artifact cannot silently flip `required: true` to `false` between sender and receiver; inconsistent declarations raise `MISSING_REQUIRED_RULE` / `ALERT`.
+- When file paths are supplied and opened for byte hashing, any `size_bytes` declarations are compared with observed local file sizes. Mismatches raise `DECLARED_SIZE_MISMATCH` / `ALERT`.
+- Without opened bytes, a declared size is not evidence of a real file and cannot produce `PASS`. The read/stat operations are not an atomic snapshot; TOCTOU safety and authenticated receiver custody are not yet implemented.
+- Five synthetic regression tests were added. Green CI on the latest commit remains a separate verification requirement.
+
 ## Not yet implemented
 
 - Complete CR-01–CR-12 coverage, authenticated cross-hop event history and non-linear fork/join DAG routes
