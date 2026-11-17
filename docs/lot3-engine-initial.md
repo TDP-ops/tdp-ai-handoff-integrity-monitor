@@ -23,14 +23,15 @@ A caller can pass the same file for sender and receiver. This **does not indepen
 - With missing history needed for lineage, the result is `UNKNOWN`. With a verified conflict in the supplied graph, the result is `ALERT`.
 - A self-attested `authorized_by_policy=true` is **not** enough to pass authorization. No supplied grant yields `UNKNOWN`; a conflicting supplied grant yields `ALERT`.
 - A matching caller-supplied grant allows the *declared lifecycle check* to proceed but **does not prove** a policy authority really granted it. A real provenance/authentication boundary remains necessary.
-- Authorized replacements that substitute an older required ID with a new ID are **not yet supported as fully valid handoffs**: the basic required-artifact inventory rule still reports them as missing. This conservative false-negative possibility is deliberate until contract-change semantics are implemented.
+- **Tranche 3:** The engine now recognizes an explicit one-to-one replacement when the destination manifest declares a `replaced` lifecycle event, the new artifact links to the removed ID, both IDs and the new version are consistent, and the active contract plus caller-supplied grant agree. This prevents the *false missing-artifact alert* in that narrow case, but the aggregate verdict remains **`UNKNOWN`** until trusted independent origin, grant and receiver receipt can be established. Unapproved substitutions remain `ALERT`.
+- The replacement's **actual receiver-side local bytes** can be hashed and checked against its declared digest; a mismatch is `ALERT`. Matching locally observed bytes alone do not turn a replacement into a proven delivery.
 
 The new synthetic tests exercise the guards but cannot establish remote receiver authenticity or policy provenance. GitHub Actions still needs green verification on the latest main commit.
 
 ## Not yet implemented
 
 - Complete CR-01–CR-12 coverage and plan-wide cross-hop event histories
-- Full lifecycle authorization, run-wide lineage across hops and authorized contract-aware inventory substitutions
+- Full lifecycle authorization, authenticated replacement approvals, multi-hop lineage and proof-backed replacement acceptance
 - Transformations and type-specific parsers for PDF, DOCX, images, tables, audio and DB schemas
 - Independent receiver-side observation and auditable provenance
 - External integrations, CLI and `BLOCK` enforcement
