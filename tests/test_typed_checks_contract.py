@@ -44,6 +44,9 @@ class TypedChecksContractTests(unittest.TestCase):
         for item in checks:
             with self.subTest(item=item["check_type"]):
                 manifest = self.with_checks({"required_structure": [item]})
+                kind_by_prefix = {"image": "image", "pdf": "pdf", "docx": "docx", "csv": "csv", "xlsx": "xlsx", "db": "db_schema", "json": "json", "audio": "audio", "text": "text"}
+                prefix = item["check_type"].split("_", 1)[0]
+                manifest["artifacts"][0]["kind"] = kind_by_prefix[prefix]
                 self.assertFalse(list(self.validator.iter_errors(manifest)))
 
     def test_known_quality_types_are_accepted(self):
@@ -55,6 +58,7 @@ class TypedChecksContractTests(unittest.TestCase):
         for item in checks:
             with self.subTest(item=item["check_type"]):
                 manifest = self.with_checks({"quality_invariants": [item]})
+                manifest["artifacts"][0]["kind"] = "audio" if item["check_type"].startswith("audio") else "image"
                 self.assertFalse(list(self.validator.iter_errors(manifest)))
 
     def test_invalid_declarations_are_rejected(self):
