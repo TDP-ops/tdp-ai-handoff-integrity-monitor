@@ -1,0 +1,192 @@
+{
+  "spec_version": "v0-lot1-acceptance",
+  "status": "EXPECTED_RESULTS_ONLY_NOT_ENGINE_TESTS",
+  "cases": [
+    {
+      "id": "COMPLETE_HANDOFF",
+      "description": "same-id same-version identical observed bytes and rules",
+      "rules": [
+        "CR-01",
+        "CR-03",
+        "CR-04",
+        "CR-06",
+        "CR-11"
+      ],
+      "expected_verdict": "PASS",
+      "expected_code": "HANDOFF_INTEGRITY_VERIFIED",
+      "synthetic": true,
+      "engine_implemented": false
+    },
+    {
+      "id": "IMAGE_ALTERED",
+      "description": "same name but different received exact bytes when exact_bytes required",
+      "rules": [
+        "CR-11"
+      ],
+      "expected_verdict": "ALERT",
+      "expected_code": "HASH_MISMATCH",
+      "synthetic": true,
+      "engine_implemented": false
+    },
+    {
+      "id": "IMAGE_COMPRESSED_ALLOWED_UNCHECKED",
+      "description": "declared compression permitted but no visual-quality extractor",
+      "rules": [
+        "CR-10",
+        "CR-12"
+      ],
+      "expected_verdict": "UNKNOWN",
+      "expected_code": "UNVERIFIABLE",
+      "synthetic": true,
+      "engine_implemented": false
+    },
+    {
+      "id": "PDF_MIDDLE_REMOVED",
+      "description": "same-name readable PDF missing a middle section, exact bytes mandated",
+      "rules": [
+        "CR-11"
+      ],
+      "expected_verdict": "ALERT",
+      "expected_code": "HASH_MISMATCH",
+      "synthetic": true,
+      "engine_implemented": false
+    },
+    {
+      "id": "DOCX_CONVERSION_NO_EXTRACTION",
+      "description": "allowed conversion but required paragraph cannot be extracted",
+      "rules": [
+        "CR-12"
+      ],
+      "expected_verdict": "UNKNOWN",
+      "expected_code": "UNVERIFIABLE",
+      "synthetic": true,
+      "engine_implemented": false
+    },
+    {
+      "id": "CSV_MISSING_REQUIRED_COLUMNS",
+      "description": "allowed table transformation loses mandatory header",
+      "rules": [
+        "CR-12"
+      ],
+      "expected_verdict": "ALERT",
+      "expected_code": "MISSING_REQUIRED_CONTENT",
+      "synthetic": true,
+      "engine_implemented": false
+    },
+    {
+      "id": "DB_SCHEMA_MISSING_FK",
+      "description": "allowed schema transformation omits a required foreign key",
+      "rules": [
+        "CR-12"
+      ],
+      "expected_verdict": "ALERT",
+      "expected_code": "MISSING_REQUIRED_CONTENT",
+      "synthetic": true,
+      "engine_implemented": false
+    },
+    {
+      "id": "VERSION_REVERSION",
+      "description": "V2 is required on C-to-D but D receives V1",
+      "rules": [
+        "CR-06"
+      ],
+      "expected_verdict": "ALERT",
+      "expected_code": "VERSION_ROLLBACK",
+      "synthetic": true,
+      "engine_implemented": false
+    },
+    {
+      "id": "AUTHORIZED_REJECTION_REPLACEMENT",
+      "description": "one rejected with active policy, distinct replacement ID, valid successor obligations",
+      "rules": [
+        "CR-04",
+        "CR-08",
+        "CR-09"
+      ],
+      "expected_verdict": "PASS",
+      "expected_code": "HANDOFF_INTEGRITY_VERIFIED",
+      "synthetic": true,
+      "engine_implemented": false
+    },
+    {
+      "id": "UNDECLARED_REPLACEMENT",
+      "description": "six objects remain but one expected ID replaced without authorization",
+      "rules": [
+        "CR-04",
+        "CR-08"
+      ],
+      "expected_verdict": "ALERT",
+      "expected_code": "UNAUTHORIZED_REPLACEMENT",
+      "synthetic": true,
+      "engine_implemented": false
+    },
+    {
+      "id": "SAME_FILENAME_DIFFERENT_ID",
+      "description": "same filename/count but unexpected logical identity",
+      "rules": [
+        "CR-04",
+        "CR-08"
+      ],
+      "expected_verdict": "ALERT",
+      "expected_code": "UNAUTHORIZED_REPLACEMENT",
+      "synthetic": true,
+      "engine_implemented": false
+    },
+    {
+      "id": "ID_REUSE_DIFFERENT_LINEAGE",
+      "description": "one ID claims incompatible byte histories or independent roots",
+      "rules": [
+        "CR-05"
+      ],
+      "expected_verdict": "ALERT",
+      "expected_code": "ARTIFACT_ID_COLLISION",
+      "synthetic": true,
+      "engine_implemented": false
+    },
+    {
+      "id": "MISSING_RECEIVER_OBSERVATION",
+      "description": "only sender's declaration exists",
+      "rules": [
+        "CR-11"
+      ],
+      "expected_verdict": "UNKNOWN",
+      "expected_code": "UNVERIFIABLE",
+      "synthetic": true,
+      "engine_implemented": false
+    },
+    {
+      "id": "REQUIRED_RULE_DROPPED",
+      "description": "a critical rule is missing at destination",
+      "rules": [
+        "CR-03"
+      ],
+      "expected_verdict": "ALERT",
+      "expected_code": "MISSING_REQUIRED_RULE",
+      "synthetic": true,
+      "engine_implemented": false
+    },
+    {
+      "id": "STALE_CONTRACT",
+      "description": "sender/receiver bind different contract versions",
+      "rules": [
+        "CR-01"
+      ],
+      "expected_verdict": "ALERT",
+      "expected_code": "CONTRACT_MISMATCH",
+      "synthetic": true,
+      "engine_implemented": false
+    },
+    {
+      "id": "VALID_FORK_WITH_OLDER_VERSION",
+      "description": "older version explicitly allowed on this branch with trusted lineage",
+      "rules": [
+        "CR-06",
+        "CR-07"
+      ],
+      "expected_verdict": "PASS",
+      "expected_code": "HANDOFF_INTEGRITY_VERIFIED",
+      "synthetic": true,
+      "engine_implemented": false
+    }
+  ]
+}
