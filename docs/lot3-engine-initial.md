@@ -37,6 +37,12 @@ The new synthetic tests exercise the guards but cannot establish remote receiver
 - **Security constraint:** even when every local pair has matching actual bytes, the journey aggregate remains `UNKNOWN` without independent agent-side custody evidence (lot 5).
 - No client artifacts or private infrastructure, no new dependencies.
 
+## Tranche 5 — Anti-downgrade audit
+
+- The receiver must carry the same `artifact.checks` declaration as the sender. A removed `exact_bytes`, `required_structure` or `quality_invariants` check is now `MISSING_REQUIRED_RULE` / `ALERT`. This is a **comparison of declarations only**; trusted original policy enforcement still requires authenticated inputs.
+- Three targeted regression tests were added. The existing unsupported-structure case was updated so both sender and receiver declare the same unavailable check, still yielding `UNKNOWN`.
+- Publishing GitHub files and reviewing source content does **not** independently prove that GitHub Actions tests passed. CI verification remains open.
+
 ## Not yet implemented
 
 - Complete CR-01–CR-12 coverage, authenticated cross-hop event history and non-linear fork/join DAG routes
