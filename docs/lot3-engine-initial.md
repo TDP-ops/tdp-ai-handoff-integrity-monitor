@@ -43,6 +43,13 @@ The new synthetic tests exercise the guards but cannot establish remote receiver
 - Three targeted regression tests were added. The existing unsupported-structure case was updated so both sender and receiver declare the same unavailable check, still yielding `UNKNOWN`.
 - Publishing GitHub files and reviewing source content does **not** independently prove that GitHub Actions tests passed. CI verification remains open.
 
+## Tranche 6 — inter-hop check preservation
+
+- At an adjacent boundary, the next sender must preserve the prior receiver's `artifact.checks` declarations for the same logical artifact ID, rather than only agreeing with its own destination.
+- A changed or removed exact-byte, structure or quality declaration across hops raises `MISSING_REQUIRED_RULE` / `ALERT`. Explicitly authorized changes to verification policy are **not yet implemented**, so this deliberately rejects both silent weakening and unrecognized legitimate policy revisions.
+- A previously declared digest that disappears at the next sender yields `UNVERIFIABLE` / `UNKNOWN` for that observation, not an unproven tampering accusation; conflicting digests for the same version still raise `ARTIFACT_ID_COLLISION`.
+- Four synthetic regression tests were added. CI execution and independently authenticated custody are still outstanding.
+
 ## Not yet implemented
 
 - Complete CR-01–CR-12 coverage, authenticated cross-hop event history and non-linear fork/join DAG routes
