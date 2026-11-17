@@ -3,7 +3,22 @@ import copy
 import unittest
 
 from handoff_monitor.lineage import check_lifecycle, check_lineage
-from tests.test_engine_core import PLAN, manifest
+PLAN = {"run_id": "r", "critical_rule_ids": ["KEEP"], "contracts": [
+    {"contract_id": "c", "version": "1", "from_step": "A", "to_step": "B",
+     "required_artifact_ids": ["a"], "accepted_versions": {"a": ["v1"]},
+     "required_rule_ids": ["KEEP"]}]}
+
+
+def manifest(role):
+    artifact = {"artifact_id": "a", "artifact_version_id": "v1",
+                "kind": "pdf", "required": True,
+                "checks": {"exact_bytes": True},
+                "observation": {"source": role, "access": "verified"}}
+    return {"run_id": "r", "handoff_id": "h", "event_id": "e-" + role,
+            "from_step": "A", "to_step": "B", "contract_id": "c",
+            "contract_version": "1", "manifest_role": role,
+            "rule_ids": ["KEEP"], "artifacts": [artifact]}
+
 from handoff_monitor.core import compare_handoff
 
 
