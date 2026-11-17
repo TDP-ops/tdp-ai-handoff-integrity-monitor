@@ -117,6 +117,19 @@ def compare_journey(plan, handoffs, *, file_evidence=None):
                     if earlier_art.get("kind") != now_art.get("kind"):
                         issues.append(finding("ARTIFACT_ID_COLLISION", "ALERT", aid,
                                               "Artifact kind changed across hops"))
+                    # A later sender must not silently weaken the exact
+                    # obligations received by the preceding agent. The
+                    # receiver-to-next-sender edge is a separate trust boundary.
+                    if earlier_art.get("checks", {}) != now_art.get("checks", {}):
+                        issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", aid,
+                                              "Artifact checks changed between hops"))
+                    # An unchanged version cannot silently shed its known
+                    # digest; absence may be observation loss, not tampering.
+                    if (old_v == new_v
+                            and earlier_art.get("content_sha256")
+                            and not now_art.get("content_sha256")):
+                        issues.append(finding("UNVERIFIABLE", "UNKNOWN", aid,
+                                              "Known version digest absent at next sender"))
         previous = received
     if len(handoffs) != max(len(steps) - 1, 0):
         issues.append(finding("CONTRACT_MISMATCH", "ALERT",
