@@ -128,6 +128,34 @@ class EngineTests(unittest.TestCase):
         result = self.result()
         self.assertEqual("UNKNOWN", result["verdict"])
 
+    def test_required_flag_cannot_be_weakened(self):
+        self.received["artifacts"][0]["required"] = False
+        result = self.result(bytes_available=True)
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("MISSING_REQUIRED_RULE", self.codes(result))
+
+    def test_declared_sender_size_must_match_real_file(self):
+        self.sent["artifacts"][0]["size_bytes"] = self.a.stat().st_size + 1
+        result = self.result(bytes_available=True)
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("DECLARED_SIZE_MISMATCH", self.codes(result))
+
+    def test_declared_receiver_size_must_match_real_file(self):
+        self.received["artifacts"][0]["size_bytes"] = self.b.stat().st_size + 1
+        result = self.result(bytes_available=True)
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("DECLARED_SIZE_MISMATCH", self.codes(result))
+
+    def test_correct_declared_sizes_allow_local_byte_match(self):
+        self.sent["artifacts"][0]["size_bytes"] = self.a.stat().st_size
+        self.received["artifacts"][0]["size_bytes"] = self.b.stat().st_size
+        self.assertEqual("PASS", self.result(bytes_available=True)["verdict"])
+
+    def test_unavailable_bytes_cannot_validate_declared_size(self):
+        self.sent["artifacts"][0]["size_bytes"] = 999
+        self.received["artifacts"][0]["size_bytes"] = 999
+        self.assertEqual("UNKNOWN", self.result()["verdict"])
+
     def test_digest_reads_real_bytes(self):
         self.assertEqual(hashlib.sha256(self.a.read_bytes()).hexdigest(), digest_file(self.a))
 
