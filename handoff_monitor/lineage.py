@@ -39,6 +39,14 @@ def check_lineage(left, right, history=None):
                for a in list(left.values()) + list(right.values())):
             issues.append(finding("UNVERIFIABLE", "UNKNOWN", explanation="Lineage history unavailable"))
         return issues
+    for aid, artifact in list(left.items()) + list(right.items()):
+        key = (aid, artifact.get("artifact_version_id"))
+        if key not in records:
+            issues.append(finding("UNVERIFIABLE", "UNKNOWN", aid,
+                                  "Current artifact version absent from supplied history"))
+        elif artifact.get("parent_version_ids", []) != records[key].get("parent_version_ids", []):
+            issues.append(finding("BROKEN_REFERENCE", "ALERT", aid,
+                                  "Current version parents disagree with history"))
     # Parent references are scoped to the same logical artifact.
     for key, artifact in records.items():
         aid, version = key
