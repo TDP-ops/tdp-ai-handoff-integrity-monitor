@@ -1,0 +1,33 @@
+{
+  "event_id": "E-PASS-SENT",
+  "run_id": "RUN-DEMO-001",
+  "handoff_id": "H-A-B",
+  "from_step": "A",
+  "to_step": "B",
+  "contract_id": "C-A-B",
+  "contract_version": "1",
+  "rule_ids": [
+    "RULE-KEEP-IMAGE"
+  ],
+  "manifest_role": "sent",
+  "artifacts": [
+    {
+      "artifact_id": "ART-001",
+      "artifact_version_id": "ART-001-V1",
+      "kind": "image",
+      "name": "reference.png",
+      "uri": "memory://synthetic/reference.png",
+      "required": true,
+      "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "observation": {
+        "source": "sender",
+        "access": "verified",
+        "observed_at": "2026-11-17T17:00:00Z",
+        "hash_computed_from_bytes": true
+      },
+      "checks": {
+        "exact_bytes": true
+      }
+    }
+  ]
+}
