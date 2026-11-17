@@ -28,9 +28,18 @@ A caller can pass the same file for sender and receiver. This **does not indepen
 
 The new synthetic tests exercise the guards but cannot establish remote receiver authenticity or policy provenance. GitHub Actions still needs green verification on the latest main commit.
 
+## Tranche 4 — Multi-hop chain A → B → C → D (partial)
+
+- `handoff_monitor/journey.py` implements `compare_journey(plan, handoffs, *, file_evidence=None)` for an **explicit, linear ordered route**. It checks expected boundary order, handoff/event ID replay, step continuity, required artifact inventory, version transitions, stable IDs and conflicting digests.
+- A same-ID move from V1 to V2 between boundaries requires an explicit parent link and a `modified` lifecycle declaration. Without that, the chain raises `VERSION_ROLLBACK` / `ALERT`. With both assertions, the transition is **`UNKNOWN`**, not established as authorized or independently observed.
+- A branch that intentionally retains V1 is **not automatically stale** when V1 remains authorized for that particular boundary. Forks, joins, arbitrary DAG routes, late retries and actual step-to-step policy authorization remain future work.
+- `tests/test_engine_journey.py` defines 13 synthetic scenarios, including unapproved V2→V1 rollback and continuing a declared V2 transition.
+- **Security constraint:** even when every local pair has matching actual bytes, the journey aggregate remains `UNKNOWN` without independent agent-side custody evidence (lot 5).
+- No client artifacts or private infrastructure, no new dependencies.
+
 ## Not yet implemented
 
-- Complete CR-01–CR-12 coverage and plan-wide cross-hop event histories
+- Complete CR-01–CR-12 coverage, authenticated cross-hop event history and non-linear fork/join DAG routes
 - Full lifecycle authorization, authenticated replacement approvals, multi-hop lineage and proof-backed replacement acceptance
 - Transformations and type-specific parsers for PDF, DOCX, images, tables, audio and DB schemas
 - Independent receiver-side observation and auditable provenance
