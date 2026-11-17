@@ -75,6 +75,34 @@ class TypedChecksContractTests(unittest.TestCase):
                 manifest = self.with_checks(checks)
                 self.assertTrue(list(self.validator.iter_errors(manifest)))
 
+    def test_incompatible_kind_and_check_are_rejected(self):
+        cases = [
+            ("image", {"required_structure": [{"check_type": "pdf_min_pages", "min_pages": 2}]}),
+            ("pdf", {"required_structure": [{"check_type": "image_min_dimensions", "width_px": 10, "height_px": 10}]}),
+            ("image", {"quality_invariants": [{"check_type": "audio_min_sample_rate_hz", "sample_rate_hz": 16000}]}),
+            ("csv", {"quality_invariants": [{"check_type": "image_min_ssim", "reference_artifact_version_id": "V1", "minimum_ssim": 0.9, "algorithm_id": "ssim-skimage-v1"}]}),
+            ("other", {"required_structure": [{"check_type": "csv_required_columns", "column_names": ["id"]}]}),
+        ]
+        for kind, checks in cases:
+            with self.subTest(kind=kind, checks=checks):
+                manifest = self.with_checks(checks)
+                manifest["artifacts"][0]["kind"] = kind
+                self.assertTrue(list(self.validator.iter_errors(manifest)))
+
+    def test_compatible_kind_and_check_are_accepted(self):
+        cases = [
+            ("image", {"required_structure": [{"check_type": "image_min_dimensions", "width_px": 10, "height_px": 10}]}),
+            ("pdf", {"required_structure": [{"check_type": "pdf_min_pages", "min_pages": 2}]}),
+            ("csv", {"required_structure": [{"check_type": "csv_required_columns", "column_names": ["id"]}]}),
+            ("audio", {"quality_invariants": [{"check_type": "audio_min_sample_rate_hz", "sample_rate_hz": 16000}]}),
+            ("other", {"required_structure": [], "quality_invariants": []}),
+        ]
+        for kind, checks in cases:
+            with self.subTest(kind=kind, checks=checks):
+                manifest = self.with_checks(checks)
+                manifest["artifacts"][0]["kind"] = kind
+                self.assertFalse(list(self.validator.iter_errors(manifest)))
+
     def test_empty_optional_arrays_are_allowed(self):
         manifest = self.with_checks({"exact_bytes": True, "required_structure": [], "quality_invariants": []})
         self.assertFalse(list(self.validator.iter_errors(manifest)))
