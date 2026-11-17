@@ -109,6 +109,23 @@ class EngineTests(unittest.TestCase):
         self.received["artifacts"][0]["checks"]={}
         self.assertEqual("UNKNOWN",self.result(bytes_available=True)["verdict"])
 
+    def test_received_manifest_cannot_drop_exact_byte_check(self):
+        self.received["artifacts"][0]["checks"] = {}
+        result = self.result(bytes_available=True)
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("MISSING_REQUIRED_RULE", self.codes(result))
+
+    def test_received_manifest_cannot_remove_structure_checks(self):
+        check = {"check_type": "pdf_min_pages", "min_pages": 3}
+        self.sent["artifacts"][0]["checks"]["required_structure"] = [check]
+        result = self.result(bytes_available=True)
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("MISSING_REQUIRED_RULE", self.codes(result))
+
+    def test_identical_checks_but_no_files_remain_unknown(self):
+        result = self.result()
+        self.assertEqual("UNKNOWN", result["verdict"])
+
     def test_digest_reads_real_bytes(self):
         self.assertEqual(hashlib.sha256(self.a.read_bytes()).hexdigest(), digest_file(self.a))
 
