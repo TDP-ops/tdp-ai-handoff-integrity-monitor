@@ -1,0 +1,35 @@
+{
+  "run_id": "RUN-DEMO-001",
+  "plan_version": "1",
+  "steps": [
+    "A",
+    "B"
+  ],
+  "critical_rule_ids": [
+    "RULE-KEEP-IMAGE"
+  ],
+  "contracts": [
+    {
+      "contract_id": "C-A-B",
+      "version": "1",
+      "from_step": "A",
+      "to_step": "B",
+      "required_artifact_ids": [
+        "ART-001"
+      ],
+      "accepted_versions": {
+        "ART-001": [
+          "ART-001-V1"
+        ]
+      },
+      "required_rule_ids": [
+        "RULE-KEEP-IMAGE"
+      ],
+      "allowed_transforms": [],
+      "allowed_lifecycle_events": [
+        "transmitted",
+        "received"
+      ]
+    }
+  ]
+}
