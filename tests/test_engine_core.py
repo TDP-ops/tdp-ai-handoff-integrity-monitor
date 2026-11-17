@@ -102,6 +102,8 @@ class EngineTests(unittest.TestCase):
     def test_unsupported_structure_is_unknown(self):
         self.sent["artifacts"][0]["checks"]["required_structure"]=[
             {"check_type":"pdf_min_pages","min_pages":2}]
+        self.received["artifacts"][0]["checks"]["required_structure"]=[
+            {"check_type":"pdf_min_pages","min_pages":2}]
         self.assertEqual("UNKNOWN",self.result(bytes_available=True)["verdict"])
 
     def test_undeclared_check_is_unknown(self):
