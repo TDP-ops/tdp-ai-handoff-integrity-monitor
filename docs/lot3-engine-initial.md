@@ -104,6 +104,13 @@ The new synthetic tests exercise the guards but cannot establish remote receiver
 - Two targeted synthetic regression tests exercise a wrong step and the valid step. This check still does **not** authenticate the grant or prove actual receiver custody.
 - CI must be verified on the latest commit before treating this tranche as tested.
 
+## Tranche 14 — Handoff event identity hardening
+
+- Both sender and receiver manifests must carry non-empty string `event_id` fields. Missing, empty or non-string IDs raise `INVALID_MANIFEST` / `ALERT`.
+- Equal sender/receiver event IDs remain `DUPLICATE_OR_UNEXPECTED` / `ALERT`.
+- Three targeted synthetic regression tests cover missing sender, missing receiver and empty receiver IDs. This is a runtime guard, not a replacement for canonical schema validation.
+- CI of the latest published commit is not yet confirmed.
+
 ## Not yet implemented
 
 - Complete CR-01–CR-12 coverage, authenticated cross-hop event history and non-linear fork/join DAG routes
