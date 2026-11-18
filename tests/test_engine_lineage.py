@@ -119,6 +119,36 @@ class LineageAndLifecycleTests(unittest.TestCase):
         )
         self.assertEqual([], findings)
 
+    def test_current_version_derivation_conflict_with_history_is_alert(self):
+        for manifest_data in (self.sent, self.received):
+            manifest_data["artifacts"][0]["derived_from_artifact_ids"] = ["source-a"]
+        current = copy.deepcopy(self.sent["artifacts"][0])
+        current["derived_from_artifact_ids"] = ["source-b"]
+        result = self.evaluate(history=[current])
+        self.assertIn("BROKEN_REFERENCE", self.codes(result["findings"]))
+
+    def test_current_version_replacement_conflict_with_history_is_alert(self):
+        for manifest_data in (self.sent, self.received):
+            manifest_data["artifacts"][0]["replaces_artifact_id"] = "old-a"
+        current = copy.deepcopy(self.sent["artifacts"][0])
+        current["replaces_artifact_id"] = "old-b"
+        result = self.evaluate(history=[current])
+        self.assertIn("BROKEN_REFERENCE", self.codes(result["findings"]))
+
+    def test_current_version_kind_conflict_with_history_is_alert(self):
+        current = copy.deepcopy(self.sent["artifacts"][0])
+        current["kind"] = "docx"
+        result = self.evaluate(history=[current])
+        self.assertIn("ARTIFACT_ID_COLLISION", self.codes(result["findings"]))
+
+    def test_current_version_digest_conflict_with_history_is_alert(self):
+        for manifest_data in (self.sent, self.received):
+            manifest_data["artifacts"][0]["content_sha256"] = "a" * 64
+        current = copy.deepcopy(self.sent["artifacts"][0])
+        current["content_sha256"] = "b" * 64
+        result = self.evaluate(history=[current])
+        self.assertIn("ARTIFACT_ID_COLLISION", self.codes(result["findings"]))
+
     def test_self_replacement_is_alert(self):
         self.sent["artifacts"][0]["replaces_artifact_id"] = "a"
         self.assertIn("ARTIFACT_ID_COLLISION", self.codes(self.evaluate()["findings"]))
