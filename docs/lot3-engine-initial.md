@@ -54,8 +54,15 @@ The new synthetic tests exercise the guards but cannot establish remote receiver
 
 - A required artifact cannot silently flip `required: true` to `false` between sender and receiver; inconsistent declarations raise `MISSING_REQUIRED_RULE` / `ALERT`.
 - When file paths are supplied and opened for byte hashing, any `size_bytes` declarations are compared with observed local file sizes. Mismatches raise `DECLARED_SIZE_MISMATCH` / `ALERT`.
-- Without opened bytes, a declared size is not evidence of a real file and cannot produce `PASS`. The read/stat operations are not an atomic snapshot; TOCTOU safety and authenticated receiver custody are not yet implemented.
+- Without opened bytes, a declared size is not evidence of a real file and cannot produce `PASS`. Hash and size are now computed from the same byte stream; a concurrent writer can still mutate that stream, so atomic snapshot guarantees and authenticated receiver custody are not yet implemented.
 - Five synthetic regression tests were added. Green CI on the latest commit remains a separate verification requirement.
+
+## Tranche 8 — Single-read file measurements
+
+- `observe_file(path)` returns SHA-256 and the measured byte count from **the same stream**. `digest_file` delegates to it for compatibility.
+- Manifest `size_bytes` comparisons no longer use a separate filesystem `stat()` after reading the digest. This closes the inconsistent two-observation measurement path.
+- This is **not an atomic snapshot**: a concurrent writer can still change bytes while the stream is open, and the caller controls the path. Authenticated immutable receipt and safe custody remain for lot 5.
+- Two regression tests cover nonempty and empty files. Their publication does not imply the latest GitHub Actions run is green.
 
 ## Not yet implemented
 
