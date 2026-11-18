@@ -125,6 +125,14 @@ The new synthetic tests exercise the guards but cannot establish remote receiver
 - Two synthetic regression tests cover matching parent and derived-from history, each deliberately returning `UNKNOWN`. History-free root versions without a declared lineage do not need this particular historical proof.
 - Independent history and custody authentication belongs to lot 5. GitHub Actions must be checked on the latest published commit.
 
+## Tranche 17 — Minimal runtime artifact input guard
+
+- The engine now rejects missing artifact version, kind, required Boolean or observation metadata; malformed artifact inventories and non-object entries also raise `INVALID_MANIFEST` / `ALERT`.
+- Malformed `checks` are not passed into downstream comparison; they fail closed instead of raising a runtime exception or producing a false `PASS`.
+- Six synthetic regression tests exercise missing fields and malformed inputs, with local matching byte files deliberately supplied to test false-PASS resistance.
+- This is **minimal defensive validation**, not complete implementation of the canonical JSON Schema at the runtime API boundary. Full schema validation remains an explicit caller prerequisite, to be resolved in the lot 3 exit audit.
+- The latest GitHub Actions run must be confirmed separately.
+
 ## Not yet implemented
 
 - Complete CR-01–CR-12 coverage, authenticated cross-hop event history and non-linear fork/join DAG routes
