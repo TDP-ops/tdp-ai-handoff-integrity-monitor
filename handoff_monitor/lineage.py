@@ -44,9 +44,21 @@ def check_lineage(left, right, history=None):
         if key not in records:
             issues.append(finding("UNVERIFIABLE", "UNKNOWN", aid,
                                   "Current artifact version absent from supplied history"))
-        elif artifact.get("parent_version_ids", []) != records[key].get("parent_version_ids", []):
-            issues.append(finding("BROKEN_REFERENCE", "ALERT", aid,
-                                  "Current version parents disagree with history"))
+        else:
+            record = records[key]
+            if (artifact.get("parent_version_ids", []) != record.get("parent_version_ids", [])
+                    or artifact.get("derived_from_artifact_ids", []) != record.get("derived_from_artifact_ids", [])
+                    or artifact.get("replaces_artifact_id") != record.get("replaces_artifact_id")):
+                issues.append(finding("BROKEN_REFERENCE", "ALERT", aid,
+                                      "Current version lineage disagrees with history"))
+            if artifact.get("kind") != record.get("kind"):
+                issues.append(finding("ARTIFACT_ID_COLLISION", "ALERT", aid,
+                                      "Current artifact kind conflicts with history"))
+            if (artifact.get("content_sha256") is not None
+                    and record.get("content_sha256") is not None
+                    and artifact["content_sha256"] != record["content_sha256"]):
+                issues.append(finding("ARTIFACT_ID_COLLISION", "ALERT", aid,
+                                      "Current version digest conflicts with history"))
     # Parent references are scoped to the same logical artifact.
     for key, artifact in records.items():
         aid, version = key
