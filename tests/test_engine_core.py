@@ -91,6 +91,25 @@ class EngineTests(unittest.TestCase):
         self.received["artifacts"][0]["kind"]="docx"
         self.assertIn("ARTIFACT_ID_COLLISION",self.codes(self.result()))
 
+    def test_handoff_must_be_declared_in_run_route(self):
+        plan = copy.deepcopy(PLAN)
+        plan["steps"] = ["A", "C", "B"]
+        result = self.result(plan=plan)
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("CONTRACT_MISMATCH", self.codes(result))
+
+    def test_handoff_with_adjacent_steps_is_allowed(self):
+        plan = copy.deepcopy(PLAN)
+        plan["steps"] = ["A", "B", "C"]
+        result = self.result(bytes_available=False, plan=plan)
+        self.assertNotIn("CONTRACT_MISMATCH", self.codes(result))
+
+    def test_duplicate_run_steps_are_rejected(self):
+        plan = copy.deepcopy(PLAN)
+        plan["steps"] = ["A", "B", "A"]
+        result = self.result(plan=plan)
+        self.assertIn("CONTRACT_MISMATCH", self.codes(result))
+
     def test_contract_version_mismatch(self):
         self.received["contract_version"]="2"
         self.assertIn("CONTRACT_MISMATCH",self.codes(self.result()))
