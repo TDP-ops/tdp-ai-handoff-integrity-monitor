@@ -145,6 +145,15 @@ class JourneyTests(unittest.TestCase):
         self.assertEqual("ALERT", result["verdict"])
         self.assertIn("BROKEN_REFERENCE", self.codes(result))
 
+    def test_interhop_required_artifact_cannot_become_optional(self):
+        self.hops[1]["sent"]["artifacts"][0]["required"] = False
+        result = self.result()
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("MISSING_REQUIRED_RULE", self.codes(result))
+
+    def test_interhop_unchanged_required_status(self):
+        self.assertNotIn("MISSING_REQUIRED_RULE", self.codes(self.result()))
+
     def test_interhop_required_exact_bytes_cannot_be_dropped(self):
         # B receives exact byte obligation, but B sends no checks to C.
         self.hops[1]["sent"]["artifacts"][0]["checks"] = {}
