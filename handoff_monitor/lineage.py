@@ -119,6 +119,11 @@ def check_lifecycle(sent, received, contract, policy_grants=None):
         elif (event.get("policy_ref"), typ, aid) not in policy_grants:
             issues.append(finding("UNAUTHORIZED_REPLACEMENT" if typ == "replaced" else "UNDECLARED_REJECTION",
                                   "ALERT", aid, "No matching approved grant"))
+        else:
+            # The grant set is supplied by the caller; a matching tuple is not
+            # an authenticated issuer assertion, nor proof of its policy scope.
+            issues.append(finding("UNVERIFIABLE", "UNKNOWN", aid,
+                                  "Matching policy grant has unverified provenance"))
         if typ == "replaced":
             old = event.get("replaces_artifact_id")
             if not old or old == aid:
