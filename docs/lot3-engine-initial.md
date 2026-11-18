@@ -91,6 +91,13 @@ The new synthetic tests exercise the guards but cannot establish remote receiver
 - This is **not historical authentication**: caller-supplied records are untrusted unless separately verified (lot 5). Missing proof must not become an end-to-end `PASS`.
 - Latest GitHub Actions outcome must be checked after this commit.
 
+## Tranche 12 — Current-version vs history integrity
+
+- When a current artifact/version also appears in supplied historical records, its `parent_version_ids`, `derived_from_artifact_ids`, `replaces_artifact_id`, `kind` and any mutually declared `content_sha256` must be consistent with that history.
+- A contradictory lineage link triggers `BROKEN_REFERENCE` / `ALERT`; a contradictory kind or declared digest triggers `ARTIFACT_ID_COLLISION` / `ALERT`.
+- Historical records remain **caller-supplied and unauthenticated** at this stage; matching values do not establish their independent truth. The proof boundary belongs to lot 5.
+- Four targeted synthetic regression tests added. CI confirmation must match the most recent commit.
+
 ## Not yet implemented
 
 - Complete CR-01–CR-12 coverage, authenticated cross-hop event history and non-linear fork/join DAG routes
