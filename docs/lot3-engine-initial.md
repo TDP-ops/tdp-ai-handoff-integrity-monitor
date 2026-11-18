@@ -98,6 +98,12 @@ The new synthetic tests exercise the guards but cannot establish remote receiver
 - Historical records remain **caller-supplied and unauthenticated** at this stage; matching values do not establish their independent truth. The proof boundary belongs to lot 5.
 - Four targeted synthetic regression tests added. CI confirmation must match the most recent commit.
 
+## Tranche 13 — Replacement event step binding
+
+- A declared `replaced` lifecycle event on a destination artifact must be bound to the receiving step `received.to_step`. An event with another `step_id` is `UNAUTHORIZED_REPLACEMENT` / `ALERT`, even if the IDs and a caller-provided policy grant appear to match.
+- Two targeted synthetic regression tests exercise a wrong step and the valid step. This check still does **not** authenticate the grant or prove actual receiver custody.
+- CI must be verified on the latest commit before treating this tranche as tested.
+
 ## Not yet implemented
 
 - Complete CR-01–CR-12 coverage, authenticated cross-hop event history and non-linear fork/join DAG routes
