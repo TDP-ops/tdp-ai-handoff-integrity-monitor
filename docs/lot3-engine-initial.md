@@ -84,6 +84,13 @@ The new synthetic tests exercise the guards but cannot establish remote receiver
 - Full schema validation is still a separate prerequisite. Older internal test fixtures that omit `steps` are temporarily handled for backward compatibility; production callers must validate a complete run plan against the canonical schema.
 - GitHub Actions must be confirmed on **this** commit, not inferred from the prior successful CI.
 
+## Tranche 12 — Historical identity binding
+
+- When a caller supplies a version-history record for an artifact, the engine now cross-checks not only `parent_version_ids` but also `derived_from_artifact_ids`, `replaces_artifact_id`, artifact kind, and any simultaneously declared SHA-256 digests.
+- A contradiction with the supplied history raises `BROKEN_REFERENCE` or `ARTIFACT_ID_COLLISION`. Five synthetic regression cases include an unchanged control.
+- This is **not historical authentication**: caller-supplied records are untrusted unless separately verified (lot 5). Missing proof must not become an end-to-end `PASS`.
+- Latest GitHub Actions outcome must be checked after this commit.
+
 ## Not yet implemented
 
 - Complete CR-01–CR-12 coverage, authenticated cross-hop event history and non-linear fork/join DAG routes
