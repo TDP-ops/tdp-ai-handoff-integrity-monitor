@@ -80,6 +80,45 @@ class LineageAndLifecycleTests(unittest.TestCase):
         result = self.evaluate(history=[old, current])
         self.assertIn("BROKEN_REFERENCE", self.codes(result["findings"]))
 
+    def test_current_derived_from_conflicts_with_history(self):
+        self.sent["artifacts"][0]["derived_from_artifact_ids"] = ["source-a"]
+        self.received["artifacts"][0]["derived_from_artifact_ids"] = ["source-a"]
+        root = copy.deepcopy(self.sent["artifacts"][0])
+        root["derived_from_artifact_ids"] = ["source-b"]
+        result = self.evaluate(history=[root])
+        self.assertIn("BROKEN_REFERENCE", self.codes(result["findings"]))
+
+    def test_current_replacement_link_conflicts_with_history(self):
+        self.sent["artifacts"][0]["replaces_artifact_id"] = "old-a"
+        self.received["artifacts"][0]["replaces_artifact_id"] = "old-a"
+        root = copy.deepcopy(self.sent["artifacts"][0])
+        root["replaces_artifact_id"] = "old-b"
+        result = self.evaluate(history=[root])
+        self.assertIn("BROKEN_REFERENCE", self.codes(result["findings"]))
+
+    def test_current_kind_conflicts_with_history(self):
+        root = copy.deepcopy(self.sent["artifacts"][0])
+        root["kind"] = "docx"
+        result = self.evaluate(history=[root])
+        self.assertIn("ARTIFACT_ID_COLLISION", self.codes(result["findings"]))
+
+    def test_current_hash_conflicts_with_history(self):
+        self.sent["artifacts"][0]["content_sha256"] = "a" * 64
+        self.received["artifacts"][0]["content_sha256"] = "a" * 64
+        root = copy.deepcopy(self.sent["artifacts"][0])
+        root["content_sha256"] = "b" * 64
+        result = self.evaluate(history=[root])
+        self.assertIn("ARTIFACT_ID_COLLISION", self.codes(result["findings"]))
+
+    def test_matching_current_history_records_no_lineage_issue(self):
+        root = copy.deepcopy(self.sent["artifacts"][0])
+        findings = check_lineage(
+            {"a": self.sent["artifacts"][0]},
+            {"a": self.received["artifacts"][0]},
+            history=[root],
+        )
+        self.assertEqual([], findings)
+
     def test_self_replacement_is_alert(self):
         self.sent["artifacts"][0]["replaces_artifact_id"] = "a"
         self.assertIn("ARTIFACT_ID_COLLISION", self.codes(self.evaluate()["findings"]))
