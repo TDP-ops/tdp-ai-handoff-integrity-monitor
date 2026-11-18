@@ -62,7 +62,11 @@ def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=N
     sender_files, receiver_files = sender_files or {}, receiver_files or {}
     if sent.get("manifest_role") != "sent" or received.get("manifest_role") != "received":
         issues.append(finding("INVALID_MANIFEST", "ALERT", explanation="Manifest roles are incorrect"))
-    if sent.get("event_id") == received.get("event_id"):
+    if (not isinstance(sent.get("event_id"), str) or not sent["event_id"]
+            or not isinstance(received.get("event_id"), str) or not received["event_id"]):
+        issues.append(finding("INVALID_MANIFEST", "ALERT",
+                              explanation="Missing or invalid handoff event ID"))
+    elif sent["event_id"] == received["event_id"]:
         issues.append(finding("DUPLICATE_OR_UNEXPECTED", "ALERT", explanation="Event ID reused"))
     for field in ("run_id", "handoff_id", "from_step", "to_step", "contract_id", "contract_version"):
         if not sent.get(field) or sent.get(field) != received.get(field):
