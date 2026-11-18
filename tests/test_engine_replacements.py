@@ -76,6 +76,17 @@ class ReplacementTests(unittest.TestCase):
         result = self.result()
         self.assertEqual("ALERT", result["verdict"])
 
+    def test_replacement_event_at_wrong_step_is_alert(self):
+        self.event["step_id"] = "A"
+        result = self.result()
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("UNAUTHORIZED_REPLACEMENT", self.codes(result))
+
+    def test_replacement_event_at_receiving_step_is_not_rejected(self):
+        result = self.result()
+        self.assertNotIn("UNAUTHORIZED_REPLACEMENT", self.codes(result))
+        self.assertEqual("UNKNOWN", result["verdict"])
+
     def test_wrong_replacement_link_is_alert(self):
         self.new["replaces_artifact_id"] = "different"
         result = self.result()
