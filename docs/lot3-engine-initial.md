@@ -71,6 +71,12 @@ The new synthetic tests exercise the guards but cannot establish remote receiver
 - Both matching derivation claims still require an independently trustworthy history; missing history returns `UNKNOWN`, not a verified lineage.
 - Four synthetic regression tests added. GitHub Actions result for the latest commit is not independently available in the current integration.
 
+## Tranche 10 — Cross-boundary required-flag continuity
+
+- A received required artifact cannot become optional in the next sender manifest without an explicitly versioned policy change. For now, any mismatch raises `MISSING_REQUIRED_RULE` / `ALERT`.
+- Two regression tests cover both a downgrade and unchanged behavior.
+- The GitHub Actions conclusion must be checked **after** this commit; a prior green run does not validate later modifications.
+
 ## Not yet implemented
 
 - Complete CR-01–CR-12 coverage, authenticated cross-hop event history and non-linear fork/join DAG routes
