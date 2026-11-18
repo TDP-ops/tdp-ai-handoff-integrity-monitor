@@ -88,6 +88,11 @@ def check_lineage(left, right, history=None):
         return False
     if any(visit(key) for key in records if states.get(key) != 2):
         issues.append(finding("BROKEN_REFERENCE", "ALERT", explanation="Cyclic version ancestry"))
+    if any(artifact.get("parent_version_ids") or artifact.get("derived_from_artifact_ids")
+           or artifact.get("replaces_artifact_id")
+           for artifact in list(left.values()) + list(right.values())):
+        issues.append(finding("UNVERIFIABLE", "UNKNOWN",
+                              explanation="Supplied lineage history is not independently authenticated"))
     return issues
 
 
