@@ -38,6 +38,42 @@ class EngineTests(unittest.TestCase):
     def codes(self, result):
         return {f["code"] for f in result["findings"]}
 
+    def test_missing_artifact_version_never_passes(self):
+        self.received["artifacts"][0].pop("artifact_version_id")
+        result = self.result(bytes_available=True)
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("INVALID_MANIFEST", self.codes(result))
+
+    def test_missing_receiver_observation_never_passes(self):
+        self.received["artifacts"][0].pop("observation")
+        result = self.result(bytes_available=True)
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("INVALID_MANIFEST", self.codes(result))
+
+    def test_required_field_cannot_be_missing(self):
+        self.sent["artifacts"][0].pop("required")
+        result = self.result(bytes_available=True)
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("INVALID_MANIFEST", self.codes(result))
+
+    def test_malformed_artifact_checks_do_not_crash_or_pass(self):
+        self.received["artifacts"][0]["checks"] = []
+        result = self.result(bytes_available=True)
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("INVALID_MANIFEST", self.codes(result))
+
+    def test_non_object_artifact_does_not_crash_or_pass(self):
+        self.received["artifacts"] = [None]
+        result = self.result(bytes_available=True)
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("INVALID_MANIFEST", self.codes(result))
+
+    def test_non_list_inventory_does_not_crash_or_pass(self):
+        self.received["artifacts"] = None
+        result = self.result(bytes_available=True)
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("INVALID_MANIFEST", self.codes(result))
+
     def test_verified_local_bytes_match(self):
         result=self.result(bytes_available=True)
         self.assertEqual("PASS", result["verdict"])
