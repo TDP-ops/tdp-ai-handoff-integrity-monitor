@@ -117,6 +117,9 @@ def compare_journey(plan, handoffs, *, file_evidence=None):
                     if earlier_art.get("kind") != now_art.get("kind"):
                         issues.append(finding("ARTIFACT_ID_COLLISION", "ALERT", aid,
                                               "Artifact kind changed across hops"))
+                    if earlier_art.get("required") != now_art.get("required"):
+                        issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", aid,
+                                              "Artifact required status changed between hops"))
                     if old_v == new_v and (
                             earlier_art.get("parent_version_ids", []) != now_art.get("parent_version_ids", [])
                             or earlier_art.get("derived_from_artifact_ids", []) != now_art.get("derived_from_artifact_ids", [])
