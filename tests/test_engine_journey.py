@@ -129,6 +129,22 @@ class JourneyTests(unittest.TestCase):
         }]
         self.assertIn("UNDECLARED_TRANSFORMATION", self.codes(self.result()))
 
+    def test_unchanged_version_cannot_erase_derivation_link_between_hops(self):
+        self.hops[0]["sent"]["artifacts"][0]["derived_from_artifact_ids"] = ["source-01"]
+        self.hops[0]["received"]["artifacts"][0]["derived_from_artifact_ids"] = ["source-01"]
+        result = self.result()
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("BROKEN_REFERENCE", self.codes(result))
+
+    def test_unchanged_version_cannot_change_parent_between_hops(self):
+        for role in ("sent", "received"):
+            self.hops[0][role]["artifacts"][0]["parent_version_ids"] = ["v0"]
+        for role in ("sent", "received"):
+            self.hops[1][role]["artifacts"][0]["parent_version_ids"] = ["other"]
+        result = self.result()
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("BROKEN_REFERENCE", self.codes(result))
+
     def test_interhop_required_exact_bytes_cannot_be_dropped(self):
         # B receives exact byte obligation, but B sends no checks to C.
         self.hops[1]["sent"]["artifacts"][0]["checks"] = {}
