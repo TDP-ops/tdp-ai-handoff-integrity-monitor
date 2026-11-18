@@ -133,6 +133,14 @@ The new synthetic tests exercise the guards but cannot establish remote receiver
 - This is **minimal defensive validation**, not complete implementation of the canonical JSON Schema at the runtime API boundary. Full schema validation remains an explicit caller prerequisite, to be resolved in the lot 3 exit audit.
 - The latest GitHub Actions run must be confirmed separately.
 
+## Tranche 18 — Canonical schema-first verification API
+
+- `handoff_monitor/validation.py` adds `validate_handoff_records(plan, sent, received)` and `compare_handoff_validated(...)`. These validate the `run_plan` and the two `event` records against their respective **canonical JSON Schema draft 2020-12 definitions**, before any byte observation. A valid `finding` object cannot be substituted for an event.
+- Malformed required fields, unexpected properties, illegal SHA-256 digests, incompatible typed checks, non-object records and incomplete plan contracts return `INVALID_MANIFEST` / `ALERT`, not a false `PASS`.
+- The strict path requires `jsonschema==4.23.0`, already installed for GitHub Actions. The existing `compare_handoff` implementation remains a lower-level legacy API whose callers must validate the schema first; the explicit validated function is now the recommended application entrypoint.
+- The tests cover valid manifests, missing evidence `UNKNOWN`, local byte equality `PASS`, and malformed input `ALERT`. These synthetic tests do **not** authenticate remote receiver evidence or policy authority.
+- **Not the lot 3 exit gate yet:** verify the new tests on GitHub Actions and decide whether every public consumption path, including `compare_journey`, must enforce strict validation by default.
+
 ## Not yet implemented
 
 - Complete CR-01–CR-12 coverage, authenticated cross-hop event history and non-linear fork/join DAG routes
