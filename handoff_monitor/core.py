@@ -39,14 +39,35 @@ def finding(code, verdict, artifact_id=None, explanation=""):
 
 def index_artifacts(items, issues, role):
     result = {}
+    if not isinstance(items, list):
+        issues.append(finding("INVALID_MANIFEST", "ALERT",
+                              explanation=role + ": artifact inventory must be a list"))
+        return result
     for a in items:
+        if not isinstance(a, dict):
+            issues.append(finding("INVALID_MANIFEST", "ALERT",
+                                  explanation=role + ": artifact entry must be an object"))
+            continue
         aid = a.get("artifact_id")
         if not isinstance(aid, str) or not aid:
-            issues.append(finding("INVALID_MANIFEST", "ALERT", explanation=role + ": invalid artifact ID"))
-        elif aid in result:
+            issues.append(finding("INVALID_MANIFEST", "ALERT",
+                                  explanation=role + ": invalid artifact ID"))
+            continue
+        if aid in result:
             issues.append(finding("DUPLICATE_OR_UNEXPECTED", "ALERT", aid, role + ": duplicate ID"))
-        else:
-            result[aid] = a
+            continue
+        if (not isinstance(a.get("artifact_version_id"), str)
+                or not a["artifact_version_id"]
+                or not isinstance(a.get("kind"), str)
+                or not a["kind"]
+                or type(a.get("required")) is not bool
+                or not isinstance(a.get("observation"), dict)
+                or not a["observation"].get("source")
+                or not a["observation"].get("access")
+                or not isinstance(a.get("checks", {}), dict)):
+            issues.append(finding("INVALID_MANIFEST", "ALERT", aid,
+                                  role + ": missing or malformed artifact identity/observation"))
+        result[aid] = a
     return result
 
 
