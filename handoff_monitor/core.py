@@ -130,7 +130,9 @@ def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=N
             issues.append(finding("VERSION_ROLLBACK", "ALERT", aid, "Version differs"))
         if av not in accepted.get(aid, []) or bv not in accepted.get(aid, []):
             issues.append(finding("STALE_ARTIFACT_VERSION", "ALERT", aid, "Version not accepted"))
-        if a.get("parent_version_ids", []) != b.get("parent_version_ids", []) or a.get("replaces_artifact_id") != b.get("replaces_artifact_id"):
+        if (a.get("parent_version_ids", []) != b.get("parent_version_ids", [])
+                or a.get("derived_from_artifact_ids", []) != b.get("derived_from_artifact_ids", [])
+                or a.get("replaces_artifact_id") != b.get("replaces_artifact_id")):
             issues.append(finding("BROKEN_REFERENCE", "ALERT", aid, "Lineage differs"))
         ac, bc = a.get("checks", {}), b.get("checks", {})
         # The receiver cannot silently remove or weaken declared controls.
