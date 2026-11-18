@@ -117,6 +117,12 @@ def compare_journey(plan, handoffs, *, file_evidence=None):
                     if earlier_art.get("kind") != now_art.get("kind"):
                         issues.append(finding("ARTIFACT_ID_COLLISION", "ALERT", aid,
                                               "Artifact kind changed across hops"))
+                    if old_v == new_v and (
+                            earlier_art.get("parent_version_ids", []) != now_art.get("parent_version_ids", [])
+                            or earlier_art.get("derived_from_artifact_ids", []) != now_art.get("derived_from_artifact_ids", [])
+                            or earlier_art.get("replaces_artifact_id") != now_art.get("replaces_artifact_id")):
+                        issues.append(finding("BROKEN_REFERENCE", "ALERT", aid,
+                                              "Unchanged version has conflicting lineage across hops"))
                     # A later sender must not silently weaken the exact
                     # obligations received by the preceding agent. The
                     # receiver-to-next-sender edge is a separate trust boundary.
