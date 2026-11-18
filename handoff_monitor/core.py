@@ -8,13 +8,24 @@ import hashlib
 from pathlib import Path
 
 
-def digest_file(path):
-    """SHA-256 of actual file bytes, streamed in bounded chunks."""
+def observe_file(path):
+    """Measure digest and byte count from the same stream of file contents.
+
+    This is one read, not an atomic filesystem snapshot; concurrent mutation
+    and path provenance remain outside the trust guarantees of lot 3.
+    """
     h = hashlib.sha256()
+    size = 0
     with Path(path).open("rb") as stream:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            size += len(chunk)
             h.update(chunk)
-    return h.hexdigest()
+    return h.hexdigest(), size
+
+
+def digest_file(path):
+    """Return the SHA-256 computed over bytes actually read."""
+    return observe_file(path)[0]
 
 
 def finding(code, verdict, artifact_id=None, explanation=""):
@@ -138,9 +149,8 @@ def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=N
             issues.append(finding("UNVERIFIABLE", "UNKNOWN", aid, "Both actual byte observations required"))
             continue
         try:
-            sha_a, sha_b = digest_file(sender_files[aid]), digest_file(receiver_files[aid])
-            size_a = Path(sender_files[aid]).stat().st_size
-            size_b = Path(receiver_files[aid]).stat().st_size
+            sha_a, size_a = observe_file(sender_files[aid])
+            sha_b, size_b = observe_file(receiver_files[aid])
         except (OSError, ValueError) as error:
             issues.append(finding("UNVERIFIABLE", "UNKNOWN", aid, type(error).__name__))
             continue
