@@ -178,14 +178,15 @@ class LineageAndLifecycleTests(unittest.TestCase):
                                    self.contract, policy_grants={("approval-other", "rejected", "a")})
         self.assertIn("UNDECLARED_REJECTION", self.codes(findings))
 
-    def test_matching_grant_rejection_has_no_lifecycle_error(self):
+    def test_matching_grant_rejection_is_still_unknown_without_provenance(self):
         self.contract["allowed_lifecycle_events"] = ["rejected"]
         event = {"event_id": "rej-1", "artifact_id": "a", "event_type": "rejected",
                  "step_id": "A", "authorized_by_policy": True, "reason": "quality",
                  "policy_ref": "approval-1"}
         findings = check_lifecycle({"lifecycle_events": [event]}, {},
                                    self.contract, policy_grants={("approval-1", "rejected", "a")})
-        self.assertEqual([], findings)
+        self.assertIn("UNVERIFIABLE", self.codes(findings))
+        self.assertNotIn("UNDECLARED_REJECTION", self.codes(findings))
 
     def test_replacement_must_use_new_id(self):
         self.contract["allowed_lifecycle_events"] = ["replaced"]
@@ -211,8 +212,10 @@ class LineageAndLifecycleTests(unittest.TestCase):
         event = {"event_id": "rep-1", "artifact_id": "new", "event_type": "replaced",
                  "step_id": "A", "authorized_by_policy": True, "policy_ref": "grant-1",
                  "replaces_artifact_id": "old"}
-        self.assertEqual([], check_lifecycle({"lifecycle_events": [event]}, {},
-            self.contract, policy_grants={("grant-1", "replaced", "new")}))
+        findings = check_lifecycle({"lifecycle_events": [event]}, {},
+            self.contract, policy_grants={("grant-1", "replaced", "new")})
+        self.assertIn("UNVERIFIABLE", self.codes(findings))
+        self.assertNotIn("UNAUTHORIZED_REPLACEMENT", self.codes(findings))
 
 
 if __name__ == "__main__":
