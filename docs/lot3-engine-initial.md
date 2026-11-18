@@ -77,6 +77,13 @@ The new synthetic tests exercise the guards but cannot establish remote receiver
 - Two regression tests cover both a downgrade and unchanged behavior.
 - The GitHub Actions conclusion must be checked **after** this commit; a prior green run does not validate later modifications.
 
+## Tranche 11 — Run-plan boundary consistency
+
+- Where the run plan declares `steps`, a handoff boundary must match an adjacent directed pair from that route, and duplicate step IDs are rejected. Merely including a matching `contract_id` in the plan is not sufficient.
+- Three synthetic regression tests cover off-route boundaries, legal adjacency, and duplicated route steps.
+- Full schema validation is still a separate prerequisite. Older internal test fixtures that omit `steps` are temporarily handled for backward compatibility; production callers must validate a complete run plan against the canonical schema.
+- GitHub Actions must be confirmed on **this** commit, not inferred from the prior successful CI.
+
 ## Not yet implemented
 
 - Complete CR-01–CR-12 coverage, authenticated cross-hop event history and non-linear fork/join DAG routes
