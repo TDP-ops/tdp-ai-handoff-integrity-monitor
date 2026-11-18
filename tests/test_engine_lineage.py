@@ -119,6 +119,29 @@ class LineageAndLifecycleTests(unittest.TestCase):
         )
         self.assertEqual([], findings)
 
+    def test_matching_parent_history_is_unknown_not_proven(self):
+        for manifest_data in (self.sent, self.received):
+            manifest_data["artifacts"][0]["parent_version_ids"] = ["v0"]
+        parent = copy.deepcopy(self.sent["artifacts"][0])
+        parent["artifact_version_id"] = "v0"
+        parent["parent_version_ids"] = []
+        current = copy.deepcopy(self.sent["artifacts"][0])
+        result = self.evaluate(history=[parent, current])
+        self.assertEqual("UNKNOWN", result["verdict"])
+        self.assertIn("UNVERIFIABLE", self.codes(result["findings"]))
+        self.assertNotIn("BROKEN_REFERENCE", self.codes(result["findings"]))
+
+    def test_matching_derived_from_history_is_unknown_not_proven(self):
+        for manifest_data in (self.sent, self.received):
+            manifest_data["artifacts"][0]["derived_from_artifact_ids"] = ["source"]
+        source = copy.deepcopy(self.sent["artifacts"][0])
+        source["artifact_id"] = "source"
+        current = copy.deepcopy(self.sent["artifacts"][0])
+        result = self.evaluate(history=[source, current])
+        self.assertEqual("UNKNOWN", result["verdict"])
+        self.assertIn("UNVERIFIABLE", self.codes(result["findings"]))
+        self.assertNotIn("BROKEN_REFERENCE", self.codes(result["findings"]))
+
     def test_current_version_derivation_conflict_with_history_is_alert(self):
         for manifest_data in (self.sent, self.received):
             manifest_data["artifacts"][0]["derived_from_artifact_ids"] = ["source-a"]
