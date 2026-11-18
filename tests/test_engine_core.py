@@ -111,6 +111,20 @@ class EngineTests(unittest.TestCase):
         self.received["artifacts"][0]["checks"]={}
         self.assertEqual("UNKNOWN",self.result(bytes_available=True)["verdict"])
 
+    def test_received_cannot_silently_remove_derived_from_lineage(self):
+        self.sent["artifacts"][0]["derived_from_artifact_ids"] = ["source-01"]
+        self.received["artifacts"][0]["derived_from_artifact_ids"] = []
+        result = self.result(bytes_available=True)
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("BROKEN_REFERENCE", self.codes(result))
+
+    def test_matching_unproven_derived_from_requires_history(self):
+        self.sent["artifacts"][0]["derived_from_artifact_ids"] = ["source-01"]
+        self.received["artifacts"][0]["derived_from_artifact_ids"] = ["source-01"]
+        result = self.result(bytes_available=True)
+        self.assertEqual("UNKNOWN", result["verdict"])
+        self.assertIn("UNVERIFIABLE", self.codes(result))
+
     def test_received_manifest_cannot_drop_exact_byte_check(self):
         self.received["artifacts"][0]["checks"] = {}
         result = self.result(bytes_available=True)
