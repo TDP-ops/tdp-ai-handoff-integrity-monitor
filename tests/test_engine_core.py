@@ -156,6 +156,19 @@ class EngineTests(unittest.TestCase):
         self.received["artifacts"][0]["size_bytes"] = 999
         self.assertEqual("UNKNOWN", self.result()["verdict"])
 
+    def test_observe_file_reports_digest_and_size_together(self):
+        from handoff_monitor.core import observe_file
+        sha, size = observe_file(self.a)
+        self.assertEqual(hashlib.sha256(self.a.read_bytes()).hexdigest(), sha)
+        self.assertEqual(len(self.a.read_bytes()), size)
+
+    def test_observe_empty_file(self):
+        from handoff_monitor.core import observe_file
+        self.a.write_bytes(b"")
+        sha, size = observe_file(self.a)
+        self.assertEqual(hashlib.sha256(b"").hexdigest(), sha)
+        self.assertEqual(0, size)
+
     def test_digest_reads_real_bytes(self):
         self.assertEqual(hashlib.sha256(self.a.read_bytes()).hexdigest(), digest_file(self.a))
 
