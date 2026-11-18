@@ -78,6 +78,18 @@ def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=N
         issues.append(finding("CONTRACT_MISMATCH", "ALERT", explanation="No unique contract"))
         return {"handoff_id": sent.get("handoff_id"), "verdict": "ALERT", "findings": issues}
     contract = matches[0]
+    # A boundary must belong to the declared route, not merely to an
+    # attacker-supplied contract with matching identifiers.
+    # Full schema validation is an input prerequisite; older local test
+    # fixtures without 'steps' retain their legacy semantics.
+    if "steps" in plan:
+        steps = plan["steps"]
+        boundary = (sent.get("from_step"), sent.get("to_step"))
+        allowed_boundaries = set(zip(steps, steps[1:]))
+        if (len(steps) != len(set(steps))
+                or boundary not in allowed_boundaries):
+            issues.append(finding("CONTRACT_MISMATCH", "ALERT",
+                                  explanation="Boundary is not adjacent in the declared run plan"))
     required_rules = set(contract.get("required_rule_ids", []))
     if not set(plan.get("critical_rule_ids", [])).issubset(required_rules):
         issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", explanation="Contract omits run-critical rules"))
