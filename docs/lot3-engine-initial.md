@@ -118,6 +118,13 @@ The new synthetic tests exercise the guards but cannot establish remote receiver
 - This prevents an unverified caller authorization from contributing to an unqualified `PASS` for a lifecycle change. Independent policy provenance belongs to lot 5.
 - Latest GitHub Actions run needs a separate confirmation; publishing tests does not establish that they pass.
 
+## Tranche 16 — Unauthenticated lineage history
+
+- Historical artifact records supplied to `check_lineage` remain controlled by the caller, even if parent and derived-from links match. Matching records with lineage claims therefore produce `UNVERIFIABLE` / `UNKNOWN`, not proven lineage authenticity.
+- Contradictory history still produces `BROKEN_REFERENCE` / `ALERT` or `ARTIFACT_ID_COLLISION` / `ALERT` as applicable.
+- Two synthetic regression tests cover matching parent and derived-from history, each deliberately returning `UNKNOWN`. History-free root versions without a declared lineage do not need this particular historical proof.
+- Independent history and custody authentication belongs to lot 5. GitHub Actions must be checked on the latest published commit.
+
 ## Not yet implemented
 
 - Complete CR-01–CR-12 coverage, authenticated cross-hop event history and non-linear fork/join DAG routes
