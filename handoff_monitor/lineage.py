@@ -167,6 +167,10 @@ def check_replacements(left, right, received, contract, policy_grants=None):
             issues.append(finding("BROKEN_REFERENCE", "ALERT", new,
                                   "Destination artifact does not identify replaced source"))
             continue
+        if event.get("step_id") != received.get("to_step"):
+            issues.append(finding("UNAUTHORIZED_REPLACEMENT", "ALERT", new,
+                                  "Replacement event does not belong to receiving step"))
+            continue
         if (old not in contract.get("allowed_replacements", [])
                 or "replaced" not in contract.get("allowed_lifecycle_events", [])):
             issues.append(finding("UNAUTHORIZED_REPLACEMENT", "ALERT", new,
