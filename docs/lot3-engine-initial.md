@@ -64,6 +64,13 @@ The new synthetic tests exercise the guards but cannot establish remote receiver
 - This is **not an atomic snapshot**: a concurrent writer can still change bytes while the stream is open, and the caller controls the path. Authenticated immutable receipt and safe custody remain for lot 5.
 - Two regression tests cover nonempty and empty files. Their publication does not imply the latest GitHub Actions run is green.
 
+## Tranche 9 — immutable version derivation links
+
+- Within a handoff, the receiving artifact must preserve the sender's `derived_from_artifact_ids` (in addition to parent versions and replacement link). An inconsistent declaration raises `BROKEN_REFERENCE`.
+- Across adjacent handoffs, an unchanged `artifact_version_id` cannot change `parent_version_ids`, `derived_from_artifact_ids` or `replaces_artifact_id`. Contradictions raise `BROKEN_REFERENCE`.
+- Both matching derivation claims still require an independently trustworthy history; missing history returns `UNKNOWN`, not a verified lineage.
+- Four synthetic regression tests added. GitHub Actions result for the latest commit is not independently available in the current integration.
+
 ## Not yet implemented
 
 - Complete CR-01–CR-12 coverage, authenticated cross-hop event history and non-linear fork/join DAG routes
