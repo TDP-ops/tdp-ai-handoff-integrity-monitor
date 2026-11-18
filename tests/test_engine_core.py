@@ -83,6 +83,24 @@ class EngineTests(unittest.TestCase):
         plan["critical_rule_ids"].append("EXTRA")
         self.assertIn("MISSING_REQUIRED_RULE",self.codes(self.result(plan=plan)))
 
+    def test_missing_sender_event_id_is_alert(self):
+        self.sent.pop("event_id")
+        result = self.result(bytes_available=True)
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("INVALID_MANIFEST", self.codes(result))
+
+    def test_missing_receiver_event_id_is_alert(self):
+        self.received.pop("event_id")
+        result = self.result(bytes_available=True)
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("INVALID_MANIFEST", self.codes(result))
+
+    def test_empty_event_id_is_alert(self):
+        self.received["event_id"] = ""
+        result = self.result(bytes_available=True)
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("INVALID_MANIFEST", self.codes(result))
+
     def test_reused_event_id(self):
         self.received["event_id"]=self.sent["event_id"]
         self.assertIn("DUPLICATE_OR_UNEXPECTED",self.codes(self.result()))
