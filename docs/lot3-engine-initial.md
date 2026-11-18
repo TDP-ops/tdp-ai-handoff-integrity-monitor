@@ -111,6 +111,13 @@ The new synthetic tests exercise the guards but cannot establish remote receiver
 - Three targeted synthetic regression tests cover missing sender, missing receiver and empty receiver IDs. This is a runtime guard, not a replacement for canonical schema validation.
 - CI of the latest published commit is not yet confirmed.
 
+## Tranche 15 — Untrusted lifecycle grant evidence
+
+- A caller-supplied matching `policy_grants` tuple is **not** authenticated policy evidence. `check_lifecycle` now returns `UNVERIFIABLE` / `UNKNOWN` even when the tuple matches the event, while a mismatched grant is still `ALERT`.
+- Existing tests for matching rejection and replacement grants now expect `UNKNOWN`, and reject a false `UNAUTHORIZED_REPLACEMENT` finding in the matching case.
+- This prevents an unverified caller authorization from contributing to an unqualified `PASS` for a lifecycle change. Independent policy provenance belongs to lot 5.
+- Latest GitHub Actions run needs a separate confirmation; publishing tests does not establish that they pass.
+
 ## Not yet implemented
 
 - Complete CR-01–CR-12 coverage, authenticated cross-hop event history and non-linear fork/join DAG routes
