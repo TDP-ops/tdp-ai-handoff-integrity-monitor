@@ -67,6 +67,9 @@ def index_artifacts(items, issues, role):
                 or not isinstance(a.get("checks", {}), dict)):
             issues.append(finding("INVALID_MANIFEST", "ALERT", aid,
                                   role + ": missing or malformed artifact identity/observation"))
+            if not isinstance(a.get("checks", {}), dict):
+                # Invalid checks cannot safely be evaluated downstream.
+                continue
         result[aid] = a
     return result
 
