@@ -36,3 +36,10 @@ Deterministic, schema-first single-handoff and linear multi-hop verification wit
 2. **Open:** audit untested paths and critical verdict transitions; add focused counterexample regressions if necessary, without expanding scope.
 3. **Open:** recheck the resulting final SHA's CI after any change.
 4. **Open:** mark the gate APPROVED only when the bounded V0 evidence meets the gate, or keep OPEN with explicit blockers. Synchronize Notion before starting lot 4.
+
+## Tranche 29 — Verdict precedence counterexamples (CI pending)
+
+- Six synthetic regression methods were added to the strict entrypoints: missing required rules with otherwise valid byte observations; malformed manifests despite local matching bytes; unsupported structural verification not becoming `PASS`; `ALERT` precedence over unverified evidence in a journey; schema errors preventing comparison.
+- Expected outcome: `ALERT` takes priority over `UNKNOWN` and local byte `PASS` when a critical contradiction exists; unsupported verifications remain `UNKNOWN`.
+- These are targeted regression scenarios, **not a complete adversarial benchmark** or a proof that all possible false `PASS` paths are closed.
+- New tests and the latest commit must pass GitHub Actions before their behavior is treated as verified. Exit Gate **NOT APPROVED**.
