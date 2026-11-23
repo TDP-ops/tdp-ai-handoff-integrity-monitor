@@ -21,12 +21,14 @@ def artifact(version="v1", digest=None, parents=None):
 
 
 def manifest(role, start, end, version="v1", idx=0):
+    item = artifact(version)
+    item["observation"]["source"] = "sender" if role == "sent" else "receiver"
     return {
         "run_id": "run", "handoff_id": f"h-{start}-{end}",
         "event_id": f"event-{idx}-{role}", "from_step": start, "to_step": end,
         "contract_id": f"c-{start}-{end}", "contract_version": "1",
         "manifest_role": role, "rule_ids": ["KEEP"],
-        "artifacts": [artifact(version)],
+        "artifacts": [item],
     }
 
 
