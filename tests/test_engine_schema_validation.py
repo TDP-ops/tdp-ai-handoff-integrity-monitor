@@ -46,6 +46,36 @@ class StrictValidationTests(unittest.TestCase):
                 sender_files={"ART-001": sender}, receiver_files={"ART-001": receiver})
             self.assertEqual("PASS", result["verdict"])
 
+    def test_invalid_sender_file_container_is_alert(self):
+        result = compare_handoff_validated(
+            self.plan, self.sent, self.received, sender_files=[])
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("INVALID_MANIFEST", {item["code"] for item in result["findings"]})
+
+    def test_invalid_receiver_file_container_is_alert(self):
+        result = compare_handoff_validated(
+            self.plan, self.sent, self.received, receiver_files="bad")
+        self.assertEqual("ALERT", result["verdict"])
+
+    def test_non_path_value_is_alert(self):
+        result = compare_handoff_validated(
+            self.plan, self.sent, self.received, sender_files={"ART-001": 42})
+        self.assertEqual("ALERT", result["verdict"])
+
+    def test_blank_path_and_bad_artifact_key_are_alert(self):
+        for paths in ({"ART-001": "  "}, {7: "example.bin"}, {"ART-001": None}):
+            with self.subTest(paths=paths):
+                result = compare_handoff_validated(
+                    self.plan, self.sent, self.received, receiver_files=paths)
+                self.assertEqual("ALERT", result["verdict"])
+
+    def test_valid_missing_path_remains_unknown(self):
+        result = compare_handoff_validated(
+            self.plan, self.sent, self.received,
+            sender_files={"ART-001": Path("/nonexistent-handoff-sender-file")},
+            receiver_files={"ART-001": Path("/nonexistent-handoff-receiver-file")})
+        self.assertEqual("UNKNOWN", result["verdict"])
+
     def test_missing_plan_version_never_passes(self):
         self.plan.pop("plan_version")
         self.check_invalid()
