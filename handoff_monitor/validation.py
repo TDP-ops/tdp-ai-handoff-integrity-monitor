@@ -98,6 +98,17 @@ def compare_handoff_validated(plan, sent, received, **kwargs):
                 if replaced is not None and (not isinstance(replaced, str) or not replaced):
                     problems.append(finding("INVALID_MANIFEST", "ALERT",
                                             explanation=f"history[{index}]: invalid replacement identity"))
+                kind = record.get("kind")
+                if kind not in ("image", "pdf", "docx", "csv", "xlsx",
+                                "db_schema", "json", "audio", "text", "yaml", "other"):
+                    problems.append(finding("INVALID_MANIFEST", "ALERT",
+                                            explanation=f"history[{index}]: invalid artifact kind"))
+                digest = record.get("content_sha256")
+                if digest is not None and (
+                        not isinstance(digest, str) or len(digest) != 64
+                        or any(c not in "0123456789abcdef" for c in digest)):
+                    problems.append(finding("INVALID_MANIFEST", "ALERT",
+                                            explanation=f"history[{index}]: invalid SHA-256 digest"))
     grants = kwargs.get("policy_grants")
     if grants is not None:
         if not isinstance(grants, (list, tuple, set, frozenset)):
