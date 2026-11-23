@@ -203,6 +203,59 @@ class StrictValidationTests(unittest.TestCase):
             self.plan, self.sent, self.received, history=[record])
         self.assertEqual("UNKNOWN", result["verdict"])
 
+    def test_alert_overrides_unknown_when_required_rule_missing(self):
+        self.received["rule_ids"] = []
+        result = compare_handoff_validated(self.plan, self.sent, self.received)
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("MISSING_REQUIRED_RULE", {f["code"] for f in result["findings"]})
+
+    def test_identical_local_bytes_cannot_override_missing_rule_alert(self):
+        with tempfile.TemporaryDirectory() as folder:
+            sender = Path(folder) / "sender"
+            receiver = Path(folder) / "receiver"
+            sender.write_bytes(b"same synthetic bytes")
+            receiver.write_bytes(b"same synthetic bytes")
+            digest = hashlib.sha256(sender.read_bytes()).hexdigest()
+            self.sent["artifacts"][0]["content_sha256"] = digest
+            self.received["artifacts"][0]["content_sha256"] = digest
+            self.received["rule_ids"] = []
+            result = compare_handoff_validated(
+                self.plan, self.sent, self.received,
+                sender_files={"ART-001": sender},
+                receiver_files={"ART-001": receiver})
+            self.assertEqual("ALERT", result["verdict"])
+            self.assertIn("MISSING_REQUIRED_RULE", {f["code"] for f in result["findings"]})
+
+    def test_unsupported_structure_does_not_become_local_pass(self):
+        check = {"check_type": "image_min_dimensions",
+                 "width_px": 10, "height_px": 10}
+        for event in (self.sent, self.received):
+            event["artifacts"][0]["checks"]["required_structure"] = [check]
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "same"
+            path.write_bytes(b"synthetic local bytes")
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            for event in (self.sent, self.received):
+                event["artifacts"][0]["content_sha256"] = digest
+            result = compare_handoff_validated(
+                self.plan, self.sent, self.received,
+                sender_files={"ART-001": path},
+                receiver_files={"ART-001": path})
+            self.assertEqual("UNKNOWN", result["verdict"])
+            self.assertIn("UNVERIFIABLE", {f["code"] for f in result["findings"]})
+
+    def test_malformed_manifest_alert_overrides_valid_local_bytes(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "same"
+            path.write_bytes(b"synthetic local bytes")
+            self.received["artifacts"][0]["observation"]["source"] = "invalid"
+            result = compare_handoff_validated(
+                self.plan, self.sent, self.received,
+                sender_files={"ART-001": path},
+                receiver_files={"ART-001": path})
+            self.assertEqual("ALERT", result["verdict"])
+            self.assertIn("INVALID_MANIFEST", {f["code"] for f in result["findings"]})
+
     def test_missing_plan_version_never_passes(self):
         self.plan.pop("plan_version")
         self.check_invalid()
