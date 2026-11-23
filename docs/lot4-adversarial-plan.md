@@ -68,3 +68,11 @@ Baseline tranche 1 `bed2c6c` CI was confirmed green by the project owner. Tranch
 - Parcours cohérent sans preuve distante : `UNKNOWN`, **pas de `PASS` global**.
 - La matrice CI exécute désormais **16 cas** : **12 violations**, **1 cas local propre**, **3 abstentions sans vérité terrain**. Résultats **attendus avant CI** : TP=12, FP=0, FN=0, TN=1, abstentions=3.
 - Les tests utilisent des données synthétiques. Ni forks/joins ni réception distante authentifiée ne sont implémentés. Ne pas déclarer ces résultats mesurés tant que le SHA final n'est pas vert.
+
+## Tranche 6 — Remplacements déclarés et interdits (CI à confirmer)
+
+- `tests/test_lot4_adversarial_replacements.py` utilise l'API stricte `compare_handoff_validated` et des données synthétiques conformes au schéma.
+- Un remplacement déclaré avec version acceptée et grant fourni par l'appelant reste `UNKNOWN`, car la provenance du grant et la réception ne sont pas authentifiées.
+- Cinq violations attendues `ALERT` : remplacement non permis, événement à la mauvaise étape, référence de remplacement incohérente, version non acceptée, événement de remplacement absent. Les codes attendus sont contrôlés cas par cas.
+- La matrice GitHub Actions couvre maintenant **22 cas** : 17 violations connues, 1 cas local propre et 4 abstentions sans vérité terrain. **Résultats attendus avant CI :** TP=17, FP=0, FN=0, TN=1, abstentions=4.
+- Aucune revendication de précision réelle ou d'authentification indépendante. La CI du dernier commit doit confirmer les résultats avant validation de la tranche.
