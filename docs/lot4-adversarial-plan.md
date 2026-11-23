@@ -99,3 +99,11 @@ Baseline tranche 1 `bed2c6c` CI was confirmed green by the project owner. Tranch
 - Ces cas doivent rester `PASS` / `EXACT_BYTES_MATCH`, sans `ALERT`. Ce sont des tests de robustesse du hashing, **pas des preuves de réception distante**.
 - `tests/test_lot4_adversarial_baseline.py` et `scripts/measure_lot4_adversarial.py` mis à jour. Nouvelle matrice attendue : **37 scénarios**, **19 violations**, **4 témoins propres**, **14 abstentions** ; TP=19, FP=0, FN=0, TN=4, abstentions=14. Chiffres **à vérifier dans la CI du dernier SHA**.
 - CI tranche 8 `d6fc302` confirmée verte par l'utilisateur. Le verdict sur la tranche 9 ne peut être confirmé avant la nouvelle CI.
+
+## Tranche 10 — Audit du calcul TP/FP/FN/TN (CI à confirmer)
+
+- Les métriques distinguent maintenant `unknown_violation` (violation connue, détection non concluante) et `unknown_clean` (cas propre connu, contrôle non concluant), séparément des `abstentions_unscored` sans vérité terrain.
+- `score_rows` est testée isolément dans `tests/test_lot4_scoring.py` : les 7 catégories de verdict/vérité, les dénominateurs, les métriques non définies sans effectif, et le rejet d'étiquettes ou verdicts inconnus.
+- Les **37 scénarios du corpus restent identiques**. Attendus avant nouvelle CI : TP=19, FP=0, FN=0, TN=4, `unknown_violation=0`, `unknown_clean=0`, abstentions non classées=14.
+- La CI précédente `4b6af3d` a été confirmée verte par l'utilisateur. La publication de la tranche 10 et ses quatre nouvelles méthodes de test doivent être validées sur le dernier SHA.
+- Les métriques décrivent seulement un petit corpus local construit ; elles ne constituent pas une estimation des performances en production.
