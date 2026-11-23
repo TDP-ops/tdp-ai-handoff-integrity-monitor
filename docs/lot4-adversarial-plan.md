@@ -92,3 +92,10 @@ Baseline tranche 1 `bed2c6c` CI was confirmed green by the project owner. Tranch
 - Les fichiers sont **des octets synthétiques, pas des images ni de l'audio valides** ; ce test n'évalue ni qualité visuelle, ni SSIM, ni signal audio.
 - Matrice CI maintenant **34 scénarios** : 19 violations à vérité connue, 1 cas propre local, 14 abstentions non classées. **Valeurs attendues, non mesurées avant CI** : TP=19, FP=0, FN=0, TN=1, abstentions=14.
 - CI de la tranche 7 (`42aea4e`) confirmée verte par l'utilisateur ; vérification requise sur le dernier SHA de cette tranche avant validation.
+
+## Tranche 9 — Contrôles propres pour mesurer les faux positifs (CI à confirmer)
+
+- Trois scénarios non adversariaux et à vérité terrain connue sont ajoutés au banc d'évaluation local : **fichier vide**, **octets binaires incluant 0x00–0xFF**, et **flux de 840 000 octets franchissant plusieurs lectures**. Ils exécutent `compare_handoff_validated` sur deux copies locales identiques.
+- Ces cas doivent rester `PASS` / `EXACT_BYTES_MATCH`, sans `ALERT`. Ce sont des tests de robustesse du hashing, **pas des preuves de réception distante**.
+- `tests/test_lot4_adversarial_baseline.py` et `scripts/measure_lot4_adversarial.py` mis à jour. Nouvelle matrice attendue : **37 scénarios**, **19 violations**, **4 témoins propres**, **14 abstentions** ; TP=19, FP=0, FN=0, TN=4, abstentions=14. Chiffres **à vérifier dans la CI du dernier SHA**.
+- CI tranche 8 `d6fc302` confirmée verte par l'utilisateur. Le verdict sur la tranche 9 ne peut être confirmé avant la nouvelle CI.
