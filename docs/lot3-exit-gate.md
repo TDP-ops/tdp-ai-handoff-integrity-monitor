@@ -1,67 +1,33 @@
-# Lot 3 — Exit Gate review (provisional, NOT APPROVED)
+# Lot 3 — Deterministic engine V0 Exit Gate
 
+**Decision: V0 LOCAL ENGINE EXIT GATE SATISFIED — final documentation CI pending.**  
 Date: 2026-11-23  
-Baseline SHA: `9b38c8f4379a9ddba2ed437afab36205908dedb9`  
-CI: **green confirmed by project owner** on `8ade1efcaaec0f7424d583360f0bbfc0b7253b46`. The owner supplied the exact JSON and unittest output from the `Measure deterministic-engine line coverage` job. This is user-provided evidence, not an independently retrieved log.
+Last code-and-test baseline verified green by the project owner: `6c4ba74c31c8a2309b110a524d9d6e133dfe92d8`.  
+This decision is restricted to **schema-first deterministic validation of synthetic/local single handoffs and linear multi-hop journeys**. It is **not** a certification of remote receipt, production security or real-world error-detection accuracy.
 
-## Scope of the V0 gate
+## Evidence
 
-Deterministic, schema-first single-handoff and linear multi-hop verification with synthetic local evidence. A local `PASS` is **not** independently authenticated delivery, and the multi-hop aggregate remains `UNKNOWN` without agent-side custody proof.
+| Gate criterion | Result and evidence |
+| --- | --- |
+| Explicit schemas at the public trust boundary | `compare_handoff_validated` and `compare_journey_validated` enforce the canonical JSON schemas before processing manifests. The historical low-level APIs require caller prevalidation and remain for compatibility. |
+| Local byte-integrity checking | SHA-256 and size computed from locally opened bytes; missing or inaccessible evidence is not an independent success claim. |
+| Core deterministic checks | Contracts, required rules and inventory, artifact identity/version/lineage, basic lifecycle and replacement rules, linear inter-hop continuity and anti-downgrade checks exercised by synthetic tests. |
+| False-PASS regression protection | Tested non-verified access, role-inconsistent observation sources, unsupported checks, invalid manifests, missing required rules, unchanged hashes without local bytes, byte mismatches, and verdict priority. Suppress contradictory per-artifact `EXACT_BYTES_MATCH / PASS` when the same artifact has `UNKNOWN` or `ALERT`. |
+| Multi-hop trust boundary | A coherent locally compared journey returns `UNKNOWN` without independently proven receiver custody; a verified contradiction produces `ALERT`. |
+| CI | Owner supplied GitHub Actions confirmation that commit `6c4ba74` is green. This is a user-verified check, not independently retrieved job logs. |
+| Reproducible line-coverage baseline | Owner supplied the Actions JSON for the earlier instrumented run: **166 passing tests**, `core.py` 173/190 (91.1%), `journey.py` 119/131 (90.8%), `lineage.py` 158/178 (88.8%), `validation.py` 130/132 (98.5%). Later added tests/changed code mean **these percentages are a historical baseline, not asserted as current**. |
+| Engineering quality boundary | The covered negative cases and green tests support the bounded V0 engineering gate; **they do not show zero false positives/negatives or comprehensive branch coverage**. Those require the adversarial lot 4 suite. |
 
-## Evidence / decisions
+## Boundaries and explicit deferrals
 
-| Criterion | Status | Evidence or blocker |
-| --- | --- | --- |
-| Canonical JSON schema is enforced before trusted application comparison | Implemented | `compare_handoff_validated`, `compare_journey_validated`; prior schema regression tests |
-| Local SHA-256 and size are measured from opened file bytes | Implemented | `core.py`, synthetic file tests |
-| Invalid records fail closed and cannot create a false `PASS` | Tested for covered cases; broader adversarial review pending | Schema-first/auxiliary-input regression tests |
-| Contract, identity, versions, lineage, lifecycle, replacement and obligation continuity | Partial V0 implementation | `core.py`, `lineage.py`, `journey.py`; not universal policy enforcement |
-| Backward-compatible public strict APIs and documented semantics | Implemented | Package exports, README, tests |
-| Reproducible measured coverage | **Measured and supplied by owner** | 166 tests passed; core 173/190 (91.1%); journey 119/131 (90.8%); lineage 158/178 (88.8%); validation 130/132 (98.5%). Source: reported Actions log for the coverage instrumentation; not a pass/fail threshold |
-| Explicit anti-false-PASS / priority audit | **Open** | Record tested counterexamples, residual false-PASS risks, and `ALERT`/`UNKNOWN` precedence |
-| Declared limitations and V0 exclusions | Documented below | Must be acknowledged in final decision |
-| Last changes confirmed green | Owner confirmed baseline `9b38c8f`; any future commit needs new verification | GitHub Actions |
-| Final gate approval | **NOT APPROVED** | Do not begin lot 4 on this basis |
+1. **Lot 4:** representative adversarial scenarios, real structured/multimodal extractors and measurement of false positives/false negatives. Current unsupported structure/quality checks remain `UNKNOWN`.
+2. **Lot 5:** authenticated sender/receiver observations, immutable custody, remote receipt, trusted history/policy-grant provenance, snapshot safety and protection against caller-controlled evidence substitution.
+3. **Unsupported by linear V0:** arbitrary graph routing, forks/joins, retries, out-of-order events, dynamic artifact discoveries, and fully authorized policy changes between steps. Do not advertise this functionality until designed and verified.
+4. No operational `BLOCK` mode or production enforcement. The result labels `PASS`, `ALERT` and `UNKNOWN` are **bounded local diagnostic outputs**, not end-to-end transfer assurance.
+5. Local `PASS` does **not** establish that an actual recipient received a file. Callers must not promote it to authenticated handoff success.
 
-## Deliberately out of scope — NOT functionality claims
+## Final release condition
 
-- Authenticated receiver-side observation, identity of observing agent, cryptographic trust, policy issuer authority, file provenance or immutable custody: **lot 5**.
-- Advanced PDF/DOCX/image/audio/structured-file extraction and adversarial precision/recall benchmark: **lot 4** and subsequent appropriate lots.
-- Arbitrary DAGs, forks/joins, asynchronous retries, out-of-order events, dynamic discoveries and fully policy-authorized transformations are **not supported by the current linear V0 model**. Their assignment and acceptance criteria must be explicitly decided before advertising wider support.
-- Operational `BLOCK` enforcement is not implemented. No production safety/security guarantee is asserted.
+The code-and-tests baseline `6c4ba74` was confirmed green by the project owner. **After this documentation-only gate commit is green**, update the linked Notion plan and journal to mark **Lot 3 completed for the bounded deterministic local V0** and start Lot 4. If that CI is red, keep Lot 3 open and repair before transitioning.
 
-## Next exact gate actions
-
-1. **Completed:** record the four measured line coverage values and the 166/166 passing tests from the owner's CI log. The latest reported green SHA at the time of receipt was `8ade1efcaaec0f7424d583360f0bbfc0b7253b46`.
-2. **Open:** audit untested paths and critical verdict transitions; add focused counterexample regressions if necessary, without expanding scope.
-3. **Open:** recheck the resulting final SHA's CI after any change.
-4. **Open:** mark the gate APPROVED only when the bounded V0 evidence meets the gate, or keep OPEN with explicit blockers. Synchronize Notion before starting lot 4.
-
-## Tranche 29 — Verdict precedence counterexamples (CI pending)
-
-- Six synthetic regression methods were added to the strict entrypoints: missing required rules with otherwise valid byte observations; malformed manifests despite local matching bytes; unsupported structural verification not becoming `PASS`; `ALERT` precedence over unverified evidence in a journey; schema errors preventing comparison.
-- Expected outcome: `ALERT` takes priority over `UNKNOWN` and local byte `PASS` when a critical contradiction exists; unsupported verifications remain `UNKNOWN`.
-- These are targeted regression scenarios, **not a complete adversarial benchmark** or a proof that all possible false `PASS` paths are closed.
-- New tests and the latest commit must pass GitHub Actions before their behavior is treated as verified. Exit Gate **NOT APPROVED**.
-
-## Tranche 30 — Declared unverified access cannot yield local PASS (CI pending)
-
-- Audit found a potential false `PASS`: with matching caller-supplied local file bytes, the engine could return `PASS` even when the sender or receiver manifest explicitly had `observation.access = not_accessible`, `not_checked`, or `unavailable`.
-- The comparator now adds `UNVERIFIABLE` / `UNKNOWN` when either artifact observation reports non-verified access, while separately observed byte mismatches still produce `ALERT`.
-- Three targeted regression methods cover the three non-verified receiver access states, an unchecked sender, and contradictory local bytes.
-- A declared `verified` state is still **caller-supplied and unauthenticated**. This change does not claim independently authenticated remote delivery or eliminate every false-`PASS` path.
-- GitHub Actions verification on the final SHA is pending. Exit Gate **NOT APPROVED**.
-
-## Tranche 31 — Role-inconsistent observation source (CI pending)
-
-- An artifact's sender/receiver role can contradict its claimed observation source despite schema-valid metadata and matching caller-supplied local file bytes. This previously allowed a local `PASS` without even coherent observation provenance.
-- The comparator now marks `UNKNOWN` when the sender artifact claims `source="receiver"` or when the received artifact claims `source="sender"`. Any real local byte mismatch remains `ALERT`.
-- Three targeted tests cover both role contradictions and `ALERT` precedence over the unverified observation. A compliant source field remains **a caller claim, not authenticated receiver evidence**; actual provenance verification remains lot 5.
-- Do not approve Exit Gate or claim tests passed until the exact published commit's CI is confirmed.
-
-## Tranche 32 — No contradictory per-artifact PASS finding (CI pending)
-
-- The global verdict could be `UNKNOWN` for a local observation with unverified `access` or role-inconsistent `source`, while that **same artifact** still had an `EXACT_BYTES_MATCH` finding marked `PASS`. This is contradictory for consumers of detailed findings.
-- `EXACT_BYTES_MATCH` is now emitted only when that artifact has **no `ALERT` or `UNKNOWN` findings**; actual byte hashing, digest mismatch alerts and aggregate verdict precedence are unchanged.
-- Three focused synthetic tests cover unverified access, role-inconsistent observation and an ordinary local verified-byte match retaining its local `PASS` finding. The latter remains **local**, not independent remote custody.
-- Exit Gate remains **NOT APPROVED** until the latest GitHub Actions run is confirmed green and the bounded V0 audit decision is documented.
+No further optional feature work belongs to Lot 3 merely to increase line coverage.
