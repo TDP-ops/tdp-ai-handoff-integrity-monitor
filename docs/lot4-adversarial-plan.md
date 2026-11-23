@@ -76,3 +76,11 @@ Baseline tranche 1 `bed2c6c` CI was confirmed green by the project owner. Tranch
 - Cinq violations attendues `ALERT` : remplacement non permis, événement à la mauvaise étape, référence de remplacement incohérente, version non acceptée, événement de remplacement absent. Les codes attendus sont contrôlés cas par cas.
 - La matrice GitHub Actions couvre maintenant **22 cas** : 17 violations connues, 1 cas local propre et 4 abstentions sans vérité terrain. **Résultats attendus avant CI :** TP=17, FP=0, FN=0, TN=1, abstentions=4.
 - Aucune revendication de précision réelle ou d'authentification indépendante. La CI du dernier commit doit confirmer les résultats avant validation de la tranche.
+
+## Tranche 7 — Contrôles structurels indisponibles (CI à confirmer)
+
+- `tests/test_lot4_structural_abstentions.py` teste sept déclarations de structure de types **image, PDF, DOCX, CSV, XLSX, schéma DB et audio**. Avec des octets synthétiques identiques et sans extracteur structurel, l'API stricte doit retourner `UNKNOWN` / `UNVERIFIABLE`, jamais un `PASS` trompeur.
+- Un huitième cas modifie les octets reçus malgré un contrôle PDF non implémenté : `HASH_MISMATCH` / `ALERT` doit primer sur `UNKNOWN`.
+- Le contenu binaire est **synthétique et volontairement non représentatif d'un fichier multimédia valide**. Ces tests vérifient uniquement le comportement d'abstention et la priorité du contrôle d'octets ; ils **ne démontrent aucune extraction PDF/image/audio/Office/DB**.
+- Matrice CI désormais **30 cas** : 18 violations à vérité connue, 1 cas local propre, 11 abstentions pour preuves structurelles ou de réception absentes. **Résultats attendus avant CI** : TP=18, FP=0, FN=0, TN=1, abstentions=11.
+- CI de la tranche 6 (`30380d7`) confirmée verte par l'utilisateur. Le SHA final de cette tranche doit encore être vérifié.
