@@ -72,6 +72,43 @@ def compare_handoff_validated(plan, sent, received, **kwargs):
                 problems.append(finding(
                     "INVALID_MANIFEST", "ALERT",
                     explanation=f"{role}: invalid artifact ID or file path"))
+    # History and policy grants are caller-provided evidence, not authenticated proof.
+    history = kwargs.get("history")
+    if history is not None:
+        if not isinstance(history, (list, tuple)):
+            problems.append(finding("INVALID_MANIFEST", "ALERT",
+                                    explanation="history: expected a list of artifact records"))
+        else:
+            for index, record in enumerate(history):
+                if (not isinstance(record, dict)
+                        or not isinstance(record.get("artifact_id"), str)
+                        or not record.get("artifact_id")
+                        or not isinstance(record.get("artifact_version_id"), str)
+                        or not record.get("artifact_version_id")):
+                    problems.append(finding("INVALID_MANIFEST", "ALERT",
+                                            explanation=f"history[{index}]: invalid artifact identity"))
+                    continue
+                for field in ("parent_version_ids", "derived_from_artifact_ids"):
+                    values = record.get(field, [])
+                    if (not isinstance(values, list)
+                            or any(not isinstance(value, str) or not value for value in values)):
+                        problems.append(finding("INVALID_MANIFEST", "ALERT",
+                                                explanation=f"history[{index}].{field}: invalid identifiers"))
+                replaced = record.get("replaces_artifact_id")
+                if replaced is not None and (not isinstance(replaced, str) or not replaced):
+                    problems.append(finding("INVALID_MANIFEST", "ALERT",
+                                            explanation=f"history[{index}]: invalid replacement identity"))
+    grants = kwargs.get("policy_grants")
+    if grants is not None:
+        if not isinstance(grants, (list, tuple, set, frozenset)):
+            problems.append(finding("INVALID_MANIFEST", "ALERT",
+                                    explanation="policy_grants: expected a collection of grant triples"))
+        else:
+            for index, grant in enumerate(grants):
+                if (not isinstance(grant, tuple) or len(grant) != 3
+                        or any(not isinstance(value, str) or not value for value in grant)):
+                    problems.append(finding("INVALID_MANIFEST", "ALERT",
+                                            explanation=f"policy_grants[{index}]: expected three nonempty strings"))
     if problems:
         return {
             "handoff_id": sent.get("handoff_id") if isinstance(sent, dict) else None,
