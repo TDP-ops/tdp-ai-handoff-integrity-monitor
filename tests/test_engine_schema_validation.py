@@ -302,6 +302,51 @@ class StrictValidationTests(unittest.TestCase):
             self.assertEqual("ALERT", result["verdict"])
             self.assertIn("HASH_MISMATCH", {f["code"] for f in result["findings"]})
 
+    def test_sender_only_observation_cannot_prove_receiver_access(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "same"
+            path.write_bytes(b"matching synthetic bytes")
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            for event in (self.sent, self.received):
+                event["artifacts"][0]["content_sha256"] = digest
+            self.received["artifacts"][0]["observation"]["source"] = "sender"
+            result = compare_handoff_validated(
+                self.plan, self.sent, self.received,
+                sender_files={"ART-001": path},
+                receiver_files={"ART-001": path})
+            self.assertEqual("UNKNOWN", result["verdict"])
+            self.assertIn("UNVERIFIABLE", {f["code"] for f in result["findings"]})
+
+    def test_receiver_only_observation_cannot_prove_sender_access(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "same"
+            path.write_bytes(b"matching synthetic bytes")
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            for event in (self.sent, self.received):
+                event["artifacts"][0]["content_sha256"] = digest
+            self.sent["artifacts"][0]["observation"]["source"] = "receiver"
+            result = compare_handoff_validated(
+                self.plan, self.sent, self.received,
+                sender_files={"ART-001": path},
+                receiver_files={"ART-001": path})
+            self.assertEqual("UNKNOWN", result["verdict"])
+
+    def test_role_inconsistent_observation_does_not_hide_hash_alert(self):
+        with tempfile.TemporaryDirectory() as folder:
+            sender = Path(folder) / "sender"
+            receiver = Path(folder) / "receiver"
+            sender.write_bytes(b"original")
+            receiver.write_bytes(b"altered")
+            self.sent["artifacts"][0]["content_sha256"] = hashlib.sha256(sender.read_bytes()).hexdigest()
+            self.received["artifacts"][0]["content_sha256"] = hashlib.sha256(receiver.read_bytes()).hexdigest()
+            self.received["artifacts"][0]["observation"]["source"] = "sender"
+            result = compare_handoff_validated(
+                self.plan, self.sent, self.received,
+                sender_files={"ART-001": sender},
+                receiver_files={"ART-001": receiver})
+            self.assertEqual("ALERT", result["verdict"])
+            self.assertIn("HASH_MISMATCH", {f["code"] for f in result["findings"]})
+
     def test_missing_plan_version_never_passes(self):
         self.plan.pop("plan_version")
         self.check_invalid()
