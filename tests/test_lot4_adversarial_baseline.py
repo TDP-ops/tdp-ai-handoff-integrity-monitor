@@ -21,6 +21,9 @@ def load(name):
 
 CASES = (
     ("equal_local_bytes", "PASS", None),
+    ("equal_empty_bytes", "PASS", None),
+    ("equal_binary_bytes", "PASS", None),
+    ("equal_multichunk_bytes", "PASS", None),
     ("changed_receiver_bytes", "ALERT", "HASH_MISMATCH"),
     ("missing_receiver_bytes", "UNKNOWN", "UNVERIFIABLE"),
     ("receiver_not_checked", "UNKNOWN", "UNVERIFIABLE"),
@@ -39,7 +42,12 @@ class AdversarialBaselineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             original = Path(folder) / "original.bin"
             receiver_file = Path(folder) / "receiver.bin"
-            original.write_bytes(b"lot4 synthetic artifact version one")
+            payload = {
+                "equal_empty_bytes": b"",
+                "equal_binary_bytes": bytes(range(256)) * 3,
+                "equal_multichunk_bytes": b"lot4" * 210000,
+            }.get(scenario, b"lot4 synthetic artifact version one")
+            original.write_bytes(payload)
             receiver_file.write_bytes(
                 b"lot4 synthetic artifact version TWO"
                 if scenario == "changed_receiver_bytes"
@@ -75,6 +83,15 @@ class AdversarialBaselineTests(unittest.TestCase):
         self.assertEqual("PASS", output["verdict"])
         self.assertIn("EXACT_BYTES_MATCH",
                       {item["code"] for item in output["findings"]})
+
+    def test_clean_byte_controls_do_not_create_false_alerts(self):
+        for name in ("equal_empty_bytes", "equal_binary_bytes",
+                     "equal_multichunk_bytes"):
+            with self.subTest(scenario=name):
+                result = self.run_case(name)
+                self.assertEqual("PASS", result["verdict"])
+                self.assertIn("EXACT_BYTES_MATCH",
+                              {item["code"] for item in result["findings"]})
 
     def test_no_false_pass_for_unverified_cases(self):
         for name in ("changed_receiver_bytes", "missing_receiver_bytes",
