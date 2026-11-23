@@ -43,3 +43,11 @@ Deterministic, schema-first single-handoff and linear multi-hop verification wit
 - Expected outcome: `ALERT` takes priority over `UNKNOWN` and local byte `PASS` when a critical contradiction exists; unsupported verifications remain `UNKNOWN`.
 - These are targeted regression scenarios, **not a complete adversarial benchmark** or a proof that all possible false `PASS` paths are closed.
 - New tests and the latest commit must pass GitHub Actions before their behavior is treated as verified. Exit Gate **NOT APPROVED**.
+
+## Tranche 30 — Declared unverified access cannot yield local PASS (CI pending)
+
+- Audit found a potential false `PASS`: with matching caller-supplied local file bytes, the engine could return `PASS` even when the sender or receiver manifest explicitly had `observation.access = not_accessible`, `not_checked`, or `unavailable`.
+- The comparator now adds `UNVERIFIABLE` / `UNKNOWN` when either artifact observation reports non-verified access, while separately observed byte mismatches still produce `ALERT`.
+- Three targeted regression methods cover the three non-verified receiver access states, an unchecked sender, and contradictory local bytes.
+- A declared `verified` state is still **caller-supplied and unauthenticated**. This change does not claim independently authenticated remote delivery or eliminate every false-`PASS` path.
+- GitHub Actions verification on the final SHA is pending. Exit Gate **NOT APPROVED**.
