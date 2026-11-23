@@ -182,6 +182,10 @@ def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=N
                 or b.get("observation", {}).get("access") != "verified"):
             issues.append(finding("UNVERIFIABLE", "UNKNOWN", aid,
                                   "Sender or receiver access not verified in manifest"))
+        if (a.get("observation", {}).get("source") == "receiver"
+                or b.get("observation", {}).get("source") == "sender"):
+            issues.append(finding("UNVERIFIABLE", "UNKNOWN", aid,
+                                  "Observation source contradicts handoff role"))
         # The receiver cannot silently remove or weaken declared controls.
         # Equal declarations are still claims, not independently audited policy.
         if ac != bc:
