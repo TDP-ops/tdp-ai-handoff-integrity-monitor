@@ -24,6 +24,9 @@ from handoff_monitor import compare_handoff_validated, compare_journey_validated
 # Category: violation, clean, or evidence_unavailable (not scored binary).
 BASE_CASES = (
     ("equal_local_bytes", "clean"),
+    ("equal_empty_bytes", "clean"),
+    ("equal_binary_bytes", "clean"),
+    ("equal_multichunk_bytes", "clean"),
     ("changed_receiver_bytes", "violation"),
     ("missing_receiver_bytes", "evidence_unavailable"),
     ("receiver_not_checked", "evidence_unavailable"),
@@ -119,7 +122,7 @@ def run():
     print(json.dumps(report, indent=2, sort_keys=True))
     # Gate on the expected performance of this deliberately bounded synthetic
     # sample; do not turn the measured performance into a general claim.
-    assert counts == {"TP": 19, "FP": 0, "FN": 0, "TN": 1,
+    assert counts == {"TP": 19, "FP": 0, "FN": 0, "TN": 4,
                       "unknown_with_known_truth": 0, "abstentions_unscored": 14}, counts
     return 0
 
