@@ -15,6 +15,22 @@ Run the strict public `compare_handoff_validated` API against synthetic, locally
 
 Source: `tests/test_lot4_adversarial_baseline.py`. These cases execute the engine with actual temporary files. Results must not be claimed until the CI for the final published commit is green.
 
+## Tranche 2 — Rule, identity and version adversarial cases (CI pending)
+
+`tests/test_lot4_adversarial_rules.py` executes five additional strict-engine cases with canonical synthetic fixtures:
+
+| Scenario | Ground truth | Expected diagnostic |
+| --- | --- | --- |
+| Required rule removed from receiver | Contract violation | `ALERT` / `MISSING_REQUIRED_RULE` |
+| Receiver reverts artifact version | Version inconsistency | `ALERT` / `VERSION_ROLLBACK` |
+| Sender event ID replayed by receiver | Duplicate event | `ALERT` / `DUPLICATE_OR_UNEXPECTED` |
+| Receiver uses stale contract version | Contract inconsistency | `ALERT` / `CONTRACT_MISMATCH` |
+| Required artifact removed at receiver | Inventory violation | `ALERT` / `MISSING_REQUIRED_ARTIFACT` |
+
+The suite also checks that a non-adversarial manifest without local bytes remains `UNKNOWN`, and that test mutations do not alter fixture files.
+
+Baseline tranche 1 `bed2c6c` CI was confirmed green by the project owner. Tranche 2 test outcomes require verification of the newest GitHub Actions SHA. The expanded matrix is not yet a measured precision/recall report.
+
 ## Evaluation rules
 
 - Track three outcomes, not only a binary pass/fail. A justified `UNKNOWN` is abstention, not a true negative.
