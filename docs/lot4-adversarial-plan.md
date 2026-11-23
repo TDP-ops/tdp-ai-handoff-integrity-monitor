@@ -45,3 +45,12 @@ Baseline tranche 1 `bed2c6c` CI was confirmed green by the project owner. Tranch
 2. Expand ground-truth-labelled adversarial cases across version, rollback, duplicate event, missing rules, unauthorized replacement and multi-hop continuity, still exercising the real runtime.
 3. Record a reproducible confusion matrix with abstentions before expanding to multimedia structure/quality checks. Distinguish unsupported scenarios; don't advertise them as detected.
 4. Establish a Lot 4 Exit Gate only after case-by-case evidence and measured quality.
+
+## Tranche 3 — Matrice de confusion synthétique exécutable (CI à confirmer)
+
+- `scripts/measure_lot4_adversarial.py` exécute les quatre scénarios de la tranche 1 et les cinq scénarios de la tranche 2 via le moteur strict, puis imprime un rapport JSON avec les verdicts par cas et les dénominateurs.
+- Neuf cas au total : **six violations connues**, **un cas local propre**, et **deux cas à preuves indisponibles** qui restent des abstentions non classées.
+- **Valeurs attendues, non encore mesurées par CI sur ce commit :** TP=6, FP=0, FN=0, TN=1, abstentions non classées=2 ; la CI échoue si ce jeu synthétique ne satisfait pas ces attentes.
+- Les `UNKNOWN` sur cas à vérité terrain connue sont comptés séparément et pris en compte dans le dénominateur de rappel des violations ; aucune abstention ne doit devenir artificiellement un vrai négatif.
+- Cette micro-matrice ne démontre **ni précision réelle du système, ni détection multimodale, ni réception distante authentifiée**. Vérifier le journal GitHub Actions avant de communiquer des valeurs comme observées.
+
