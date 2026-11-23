@@ -4,7 +4,6 @@ Each case runs the public schema-first comparator on the canonical synthetic
 fixtures. Expected codes and verdicts are independently specified here, not
 read from a pre-existing contract expectation matrix.
 """
-import copy
 import json
 import unittest
 from pathlib import Path
