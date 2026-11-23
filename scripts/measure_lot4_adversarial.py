@@ -80,51 +80,71 @@ def run():
                  "truth": "violation",
                  "verdict": quality_case(kind, quality, tamper=True)["verdict"]})
 
+    report = score_rows(rows)
+    print(json.dumps(report, indent=2, sort_keys=True))
+    expected = {"TP": 19, "FP": 0, "FN": 0, "TN": 4,
+                "unknown_violation": 0, "unknown_clean": 0,
+                "abstentions_unscored": 14}
+    assert report["counts"] == expected, report["counts"]
+    return 0
+
+
+def score_rows(rows):
+    """Score synthetic ground truth without hiding UNKNOWN among negative cases."""
     counts = {"TP": 0, "FP": 0, "FN": 0, "TN": 0,
-              "unknown_with_known_truth": 0, "abstentions_unscored": 0}
+              "unknown_violation": 0, "unknown_clean": 0,
+              "abstentions_unscored": 0}
     for row in rows:
         truth, verdict = row["truth"], row["verdict"]
+        if truth not in ("violation", "clean", "evidence_unavailable"):
+            raise ValueError("Unsupported ground truth: " + str(truth))
+        if verdict not in ("PASS", "ALERT", "UNKNOWN"):
+            raise ValueError("Unsupported verdict: " + str(verdict))
         if truth == "evidence_unavailable":
-            if verdict == "UNKNOWN":
-                counts["abstentions_unscored"] += 1
-            else:
-                # Missing-ground-truth scenarios must not be promoted to evidence.
-                raise AssertionError(f"{row['case']}: expected UNKNOWN, got {verdict}")
-        elif verdict == "UNKNOWN":
-            counts["unknown_with_known_truth"] += 1
+            if verdict != "UNKNOWN":
+                raise AssertionError(
+                    f"{row['case']}: expected UNKNOWN without ground truth, got {verdict}")
+            counts["abstentions_unscored"] += 1
         elif truth == "violation":
-            counts["TP" if verdict == "ALERT" else "FN"] += 1
+            if verdict == "ALERT":
+                counts["TP"] += 1
+            elif verdict == "PASS":
+                counts["FN"] += 1
+            else:
+                counts["unknown_violation"] += 1
         else:
-            counts["FP" if verdict == "ALERT" else "TN"] += 1
+            if verdict == "ALERT":
+                counts["FP"] += 1
+            elif verdict == "PASS":
+                counts["TN"] += 1
+            else:
+                counts["unknown_clean"] += 1
 
     known = sum(1 for row in rows if row["truth"] != "evidence_unavailable")
-    classified = counts["TP"] + counts["TN"] + counts["FP"] + counts["FN"]
+    classified = sum(counts[k] for k in ("TP", "FP", "FN", "TN"))
     precision_den = counts["TP"] + counts["FP"]
-    recall_den = counts["TP"] + counts["FN"] + sum(
-        1 for row in rows if row["truth"] == "violation" and row["verdict"] == "UNKNOWN")
-    report = {
+    recall_den = counts["TP"] + counts["FN"] + counts["unknown_violation"]
+    clean_den = counts["TN"] + counts["FP"] + counts["unknown_clean"]
+    assert known == classified + counts["unknown_violation"] + counts["unknown_clean"]
+    return {
         "scope": "small_synthetic_V0_local_only",
         "total_cases": len(rows),
         "known_ground_truth_cases": known,
         "classified_known_truth_cases": classified,
         "counts": counts,
-        "precision_alert_classified": (counts["TP"] / precision_den
-                                       if precision_den else None),
+        "precision_alert_classified": counts["TP"] / precision_den if precision_den else None,
         "recall_alert_including_unknown_as_missed_detection": (
             counts["TP"] / recall_den if recall_den else None),
+        "clean_pass_rate_including_unknown_as_unresolved": (
+            counts["TN"] / clean_den if clean_den else None),
         "rows": rows,
         "limitations": [
             "No authenticated remote receipt.",
-            "UNKNOWN without ground truth excluded from binary confusion matrix.",
+            "UNKNOWN on known violations or known clean cases is counted explicitly.",
+            "UNKNOWN without ground truth is excluded from the binary matrix.",
             "Not representative of real-world false-positive or false-negative rates.",
         ],
     }
-    print(json.dumps(report, indent=2, sort_keys=True))
-    # Gate on the expected performance of this deliberately bounded synthetic
-    # sample; do not turn the measured performance into a general claim.
-    assert counts == {"TP": 19, "FP": 0, "FN": 0, "TN": 4,
-                      "unknown_with_known_truth": 0, "abstentions_unscored": 14}, counts
-    return 0
 
 
 if __name__ == "__main__":
