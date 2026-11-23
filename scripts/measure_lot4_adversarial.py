@@ -80,7 +80,7 @@ def run():
     print(json.dumps(report, indent=2, sort_keys=True))
     # Gate on the expected performance of this deliberately bounded synthetic
     # sample; do not turn the measured performance into a general claim.
-    assert counts == {"TP": 6, "FP": 0, "FN": 0, "TN": 1,
+    assert counts == {"TP": 9, "FP": 0, "FN": 0, "TN": 1,
                       "unknown_with_known_truth": 0, "abstentions_unscored": 2}, counts
     return 0
 
