@@ -169,3 +169,10 @@ The core must not be presented as production-ready or as a fully independently v
 - Invalid structures return `INVALID_MANIFEST` / `ALERT`, with no per-handoff results. Five synthetic regression tests cover malformed and valid empty evidence containers.
 - These checks are **container-level**, not proof of actual filesystem paths, trustworthiness of caller-supplied evidence, independent custody, or complete runtime API hardening. Additional audit of path values and other auxiliary inputs remains necessary before lot 3 Exit Gate.
 - Final GitHub Actions CI result must be confirmed for this exact commit.
+
+## Tranche 21 — Auxiliary file path value validation (CI pending)
+
+- The strict `compare_journey_validated` API now rejects non-string/non-`pathlib.Path` file path values, empty or whitespace-only strings, and invalid artifact keys within `sender_files` and `receiver_files` before invoking the lower-level comparator.
+- Five synthetic regression tests cover integer/null/blank paths, non-string artifact IDs, and permitted `Path` objects with unavailable files. An unavailable valid path still yields `UNKNOWN`, not proof of delivery.
+- These are **input-type defenses**, not filesystem confinement, path authenticity, secure custody or independent receiver evidence. The single-handoff strict entrypoint and auxiliary inputs must still be audited before the lot 3 Exit Gate.
+- Do not claim the new tests passed until GitHub Actions confirms the final commit.
