@@ -17,13 +17,26 @@ A deterministic integrity monitor for multi-agent AI handoffs. Its objective is 
 
 ## Project status
 
-**Planning / initial repository setup.** No integrity engine is implemented yet. No production security or integrity guarantees are claimed.
+**Lot 3 — deterministic engine implemented and being validated; Exit Gate not yet approved.** This is a synthetic/local verification engine, not a production-ready authenticated end-to-end receipt system. The comparator can verify caller-provided local bytes and flag manifest and contract inconsistencies, but it cannot independently prove that a remote AI agent received an artifact.
+
+Schema-first public Python entrypoints (recommended for untrusted manifest input):
+
+```python
+from handoff_monitor import compare_handoff_validated, compare_journey_validated
+
+single = compare_handoff_validated(plan, sent, received)
+journey = compare_journey_validated(plan, [{"sent": sent, "received": received}])
+```
+
+`jsonschema==4.23.0` is required to call these validated entrypoints (installed by the repository CI). `compare_handoff` and `compare_journey` remain available for callers that separately enforce the canonical schema; **do not use them directly with untrusted manifests**. The `PASS` verdict of a local single-handoff byte check is not proof of independent remote receiver custody, and a coherent multi-hop journey remains `UNKNOWN` without that proof. Validated API input checks also do not authenticate caller-supplied histories, policy grants or file paths.
+
+See [Lot 3 implementation and open limitations](docs/lot3-engine-initial.md) and [canonical JSON Schema](schemas/handoff-v0.schema.json).
 
 The planned development sequence is:
 1. Contract and schema definition
 2. Selective review of reusable open-source components and licenses
 3. Deterministic engine
-4. Synthetic regression tests and GitHub Actions
+4. Adversarial synthetic regression suite and measured test coverage
 5. Receiver-side evidence adapters
 6. Static Hugging Face demonstration
 
