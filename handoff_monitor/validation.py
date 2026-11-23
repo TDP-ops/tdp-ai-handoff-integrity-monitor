@@ -96,6 +96,23 @@ def compare_journey_validated(plan, handoffs, *, file_evidence=None):
                 location = ".".join(str(part) for part in error.absolute_path) or "<root>"
                 problems.append(finding("INVALID_MANIFEST", "ALERT",
                                         explanation=f"handoffs[{index}].{label}.{location}: {error.message}"))
+    # File evidence is caller-supplied and outside the JSON manifest schema.
+    # Reject malformed containers before the downstream comparator calls .get.
+    if file_evidence is not None:
+        if not isinstance(file_evidence, dict):
+            problems.append(finding("INVALID_MANIFEST", "ALERT",
+                                    explanation="file_evidence: expected an object"))
+        else:
+            for handoff_id, supplied in file_evidence.items():
+                if not isinstance(handoff_id, str) or not isinstance(supplied, dict):
+                    problems.append(finding("INVALID_MANIFEST", "ALERT",
+                                            explanation="file_evidence: invalid handoff entry"))
+                    continue
+                for role in ("sender_files", "receiver_files"):
+                    paths = supplied.get(role)
+                    if paths is not None and not isinstance(paths, dict):
+                        problems.append(finding("INVALID_MANIFEST", "ALERT",
+                                                explanation=f"file_evidence[{handoff_id}].{role}: expected an object"))
     if problems:
         return {
             "run_id": plan.get("run_id") if isinstance(plan, dict) else None,
