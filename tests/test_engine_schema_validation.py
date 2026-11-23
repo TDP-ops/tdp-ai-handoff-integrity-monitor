@@ -26,6 +26,22 @@ class StrictValidationTests(unittest.TestCase):
         self.assertEqual("ALERT", result["verdict"])
         self.assertIn("INVALID_MANIFEST", {f["code"] for f in result["findings"]})
 
+    def test_public_package_exports_schema_first_apis(self):
+        from handoff_monitor import (
+            compare_handoff_validated as public_single,
+            compare_journey_validated as public_journey,
+        )
+        self.assertEqual("UNKNOWN", public_single(
+            self.plan, self.sent, self.received)["verdict"])
+        self.assertEqual("UNKNOWN", public_journey(
+            self.plan, [{"sent": self.sent, "received": self.received}])["verdict"])
+
+    def test_legacy_package_api_retained(self):
+        from handoff_monitor import compare_handoff, compare_journey, digest_file
+        self.assertTrue(callable(compare_handoff))
+        self.assertTrue(callable(compare_journey))
+        self.assertTrue(callable(digest_file))
+
     def test_canonical_examples_are_schema_valid(self):
         self.assertEqual([], validate_handoff_records(self.plan, self.sent, self.received))
 
