@@ -53,6 +53,28 @@ class StrictJourneyValidationTests(unittest.TestCase):
         self.hops = {"sent": self.hops[0]["sent"]}
         self.assert_invalid()
 
+    def test_non_mapping_file_evidence_rejected(self):
+        result = compare_journey_validated(self.plan, self.hops, file_evidence=[])
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertEqual([], result["handoffs"])
+        self.assertIn("INVALID_MANIFEST", {f["code"] for f in result["findings"]})
+
+    def test_non_mapping_handoff_evidence_rejected(self):
+        self.assertEqual("ALERT", compare_journey_validated(
+            self.plan, self.hops, file_evidence={"H-A-B": []})["verdict"])
+
+    def test_non_mapping_sender_files_rejected(self):
+        self.assertEqual("ALERT", compare_journey_validated(
+            self.plan, self.hops, file_evidence={"H-A-B": {"sender_files": []}})["verdict"])
+
+    def test_non_mapping_receiver_files_rejected(self):
+        self.assertEqual("ALERT", compare_journey_validated(
+            self.plan, self.hops, file_evidence={"H-A-B": {"receiver_files": "invalid"}})["verdict"])
+
+    def test_valid_empty_file_evidence_still_unknown(self):
+        self.assertEqual("UNKNOWN", compare_journey_validated(
+            self.plan, self.hops, file_evidence={"H-A-B": {"sender_files": {}, "receiver_files": {}}})["verdict"])
+
     def test_empty_handoffs_still_validates_plan(self):
         self.hops = []
         self.plan["untrusted"] = True
