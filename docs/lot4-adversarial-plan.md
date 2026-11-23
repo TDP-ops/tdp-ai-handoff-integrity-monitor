@@ -54,3 +54,9 @@ Baseline tranche 1 `bed2c6c` CI was confirmed green by the project owner. Tranch
 - Les `UNKNOWN` sur cas à vérité terrain connue sont comptés séparément et pris en compte dans le dénominateur de rappel des violations ; aucune abstention ne doit devenir artificiellement un vrai négatif.
 - Cette micro-matrice ne démontre **ni précision réelle du système, ni détection multimodale, ni réception distante authentifiée**. Vérifier le journal GitHub Actions avant de communiquer des valeurs comme observées.
 
+
+## Tranche 4 — Identité, type et contrôles retirés (CI à confirmer)
+
+- Trois nouveaux scénarios exécutables via `compare_handoff_validated` dans `tests/test_lot4_adversarial_rules.py` : artefact remplacé par un identifiant inattendu (attendu `MISSING_REQUIRED_ARTIFACT`), type modifié (attendu `ARTIFACT_ID_COLLISION`), contrôle `exact_bytes` retiré côté récepteur (attendu `MISSING_REQUIRED_RULE`).
+- `scripts/measure_lot4_adversarial.py` inclut désormais **12 cas** (9 violations connues, 1 cas propre local, 2 abstentions sans vérité terrain). **Valeurs attendues avant CI :** TP=9, FP=0, FN=0, TN=1, abstentions=2.
+- Les résultats doivent être confirmés par la CI sur le dernier SHA. Ni authenticité des réceptions ni performance générale en production ne sont démontrées.
