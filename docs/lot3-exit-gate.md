@@ -1,8 +1,8 @@
 # Lot 3 — Deterministic engine V0 Exit Gate
 
-**Decision: V0 LOCAL ENGINE EXIT GATE SATISFIED — final documentation CI pending.**  
+**Decision: V0 LOCAL ENGINE EXIT GATE APPROVED — CI confirmed by the project owner.**  
 Date: 2026-11-23  
-Last code-and-test baseline verified green by the project owner: `6c4ba74c31c8a2309b110a524d9d6e133dfe92d8`.  
+Last code-and-test baseline verified green by the project owner: `6c4ba74c31c8a2309b110a524d9d6e133dfe92d8`. The final documentation-only Exit Gate commit `f2f067fe3eed9c8dd5c59f1809cf90f7751ae1bb` was also confirmed green by the owner.  
 This decision is restricted to **schema-first deterministic validation of synthetic/local single handoffs and linear multi-hop journeys**. It is **not** a certification of remote receipt, production security or real-world error-detection accuracy.
 
 ## Evidence
@@ -28,6 +28,6 @@ This decision is restricted to **schema-first deterministic validation of synthe
 
 ## Final release condition
 
-The code-and-tests baseline `6c4ba74` was confirmed green by the project owner. **After this documentation-only gate commit is green**, update the linked Notion plan and journal to mark **Lot 3 completed for the bounded deterministic local V0** and start Lot 4. If that CI is red, keep Lot 3 open and repair before transitioning.
+**Satisfied.** The code-and-tests baseline `6c4ba74` and final gate documentation `f2f067f` were confirmed green by the project owner. Lot 3 is approved **only for the bounded deterministic local V0**. Lot 4 may start. The remaining limitations are explicitly deferred and must not be represented as completed capabilities.
 
 No further optional feature work belongs to Lot 3 merely to increase line coverage.
