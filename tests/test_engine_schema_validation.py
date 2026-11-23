@@ -347,6 +347,47 @@ class StrictValidationTests(unittest.TestCase):
             self.assertEqual("ALERT", result["verdict"])
             self.assertIn("HASH_MISMATCH", {f["code"] for f in result["findings"]})
 
+    def test_unverified_access_has_no_per_artifact_pass_finding(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "same"
+            path.write_bytes(b"matching synthetic bytes")
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            for event in (self.sent, self.received):
+                event["artifacts"][0]["content_sha256"] = digest
+            self.received["artifacts"][0]["observation"]["access"] = "not_checked"
+            result = compare_handoff_validated(
+                self.plan, self.sent, self.received,
+                sender_files={"ART-001": path}, receiver_files={"ART-001": path})
+            self.assertEqual("UNKNOWN", result["verdict"])
+            self.assertNotIn("EXACT_BYTES_MATCH", {f["code"] for f in result["findings"]})
+
+    def test_role_inconsistent_source_has_no_per_artifact_pass_finding(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "same"
+            path.write_bytes(b"matching synthetic bytes")
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            for event in (self.sent, self.received):
+                event["artifacts"][0]["content_sha256"] = digest
+            self.received["artifacts"][0]["observation"]["source"] = "sender"
+            result = compare_handoff_validated(
+                self.plan, self.sent, self.received,
+                sender_files={"ART-001": path}, receiver_files={"ART-001": path})
+            self.assertEqual("UNKNOWN", result["verdict"])
+            self.assertNotIn("EXACT_BYTES_MATCH", {f["code"] for f in result["findings"]})
+
+    def test_verified_local_byte_match_keeps_per_artifact_pass_finding(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "same"
+            path.write_bytes(b"matching synthetic bytes")
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            for event in (self.sent, self.received):
+                event["artifacts"][0]["content_sha256"] = digest
+            result = compare_handoff_validated(
+                self.plan, self.sent, self.received,
+                sender_files={"ART-001": path}, receiver_files={"ART-001": path})
+            self.assertEqual("PASS", result["verdict"])
+            self.assertIn("EXACT_BYTES_MATCH", {f["code"] for f in result["findings"]})
+
     def test_missing_plan_version_never_passes(self):
         self.plan.pop("plan_version")
         self.check_invalid()
