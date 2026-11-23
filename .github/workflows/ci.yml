@@ -33,3 +33,5 @@ jobs:
         run: .venv/bin/python -m unittest discover -s tests -p 'test_*.py' -v
       - name: Measure deterministic-engine line coverage
         run: .venv/bin/python scripts/measure_engine_coverage.py
+      - name: Measure lot 4 synthetic adversarial outcomes
+        run: .venv/bin/python scripts/measure_lot4_adversarial.py
