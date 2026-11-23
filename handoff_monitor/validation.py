@@ -25,7 +25,7 @@ def _validators():
             "$defs": schema["$defs"],
             "$ref": "#/$defs/" + definition,
         })
-        for definition in ("run_plan", "event")
+        for definition in ("run_plan", "event", "artifact")
     }
 
 
@@ -80,35 +80,14 @@ def compare_handoff_validated(plan, sent, received, **kwargs):
                                     explanation="history: expected a list of artifact records"))
         else:
             for index, record in enumerate(history):
-                if (not isinstance(record, dict)
-                        or not isinstance(record.get("artifact_id"), str)
-                        or not record.get("artifact_id")
-                        or not isinstance(record.get("artifact_version_id"), str)
-                        or not record.get("artifact_version_id")):
-                    problems.append(finding("INVALID_MANIFEST", "ALERT",
-                                            explanation=f"history[{index}]: invalid artifact identity"))
-                    continue
-                for field in ("parent_version_ids", "derived_from_artifact_ids"):
-                    values = record.get(field, [])
-                    if (not isinstance(values, list)
-                            or any(not isinstance(value, str) or not value for value in values)):
-                        problems.append(finding("INVALID_MANIFEST", "ALERT",
-                                                explanation=f"history[{index}].{field}: invalid identifiers"))
-                replaced = record.get("replaces_artifact_id")
-                if replaced is not None and (not isinstance(replaced, str) or not replaced):
-                    problems.append(finding("INVALID_MANIFEST", "ALERT",
-                                            explanation=f"history[{index}]: invalid replacement identity"))
-                kind = record.get("kind")
-                if kind not in ("image", "pdf", "docx", "csv", "xlsx",
-                                "db_schema", "json", "audio", "text", "yaml", "other"):
-                    problems.append(finding("INVALID_MANIFEST", "ALERT",
-                                            explanation=f"history[{index}]: invalid artifact kind"))
-                digest = record.get("content_sha256")
-                if digest is not None and (
-                        not isinstance(digest, str) or len(digest) != 64
-                        or any(c not in "0123456789abcdef" for c in digest)):
-                    problems.append(finding("INVALID_MANIFEST", "ALERT",
-                                            explanation=f"history[{index}]: invalid SHA-256 digest"))
+                errors = sorted(_validators()["artifact"].iter_errors(record),
+                                key=lambda error: (str(list(error.absolute_path)),
+                                                   error.message))
+                for error in errors:
+                    location = ".".join(str(part) for part in error.absolute_path) or "<root>"
+                    problems.append(finding(
+                        "INVALID_MANIFEST", "ALERT",
+                        explanation=f"history[{index}].{location}: {error.message}"))
     grants = kwargs.get("policy_grants")
     if grants is not None:
         if not isinstance(grants, (list, tuple, set, frozenset)):
