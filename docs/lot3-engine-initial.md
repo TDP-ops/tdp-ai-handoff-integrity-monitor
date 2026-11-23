@@ -190,3 +190,10 @@ The core must not be presented as production-ready or as a fully independently v
 - `policy_grants` must be an iterable collection of triples of non-empty strings; malformed grants become `INVALID_MANIFEST` / `ALERT` rather than causing downstream membership or unpacking errors.
 - Five targeted regression test methods cover malformed history, grants, and a well-formed but unauthenticated history baseline. These checks **do not authenticate** a policy issuer or independent event history and do not validate the full historical artifact record schema.
 - Exact GitHub Actions CI conclusion remains to be confirmed. Lot 3 Exit Gate remains open.
+
+## Tranche 24 — Historical artifact kind and digest input guards (CI pending)
+
+- `compare_handoff_validated` now validates the historical artifact `kind` against the canonical schema's allowed types and validates optional historical SHA-256 as exactly 64 lowercase hexadecimal characters before lineage comparisons.
+- Five new regression test methods cover missing, non-string and unsupported kinds, invalid digest forms, and a structurally valid historical record. Malformed historical data returns `INVALID_MANIFEST` / `ALERT` rather than being mistaken for a verified identity collision.
+- This is **partial historical input validation**, not authentication of historical records, their provenance, or grant authorities. The strict interface and remaining records require a final audit before the lot 3 Exit Gate.
+- GitHub Actions must be checked on this tranche's final SHA before claiming its tests pass.
