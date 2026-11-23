@@ -84,3 +84,11 @@ Baseline tranche 1 `bed2c6c` CI was confirmed green by the project owner. Tranch
 - Le contenu binaire est **synthétique et volontairement non représentatif d'un fichier multimédia valide**. Ces tests vérifient uniquement le comportement d'abstention et la priorité du contrôle d'octets ; ils **ne démontrent aucune extraction PDF/image/audio/Office/DB**.
 - Matrice CI désormais **30 cas** : 18 violations à vérité connue, 1 cas local propre, 11 abstentions pour preuves structurelles ou de réception absentes. **Résultats attendus avant CI** : TP=18, FP=0, FN=0, TN=1, abstentions=11.
 - CI de la tranche 6 (`30380d7`) confirmée verte par l'utilisateur. Le SHA final de cette tranche doit encore être vérifié.
+
+## Tranche 8 — Contrôles de qualité indisponibles (CI à confirmer)
+
+- `tests/test_lot4_quality_abstentions.py` teste les trois déclarations de qualité prévues par le contrat : seuil **SSIM image**, ratio de flou image et fréquence d'échantillonnage audio. À défaut d'algorithme ou d'extracteur implémenté, chacune doit produire `UNKNOWN` / `UNVERIFIABLE`, même avec les mêmes octets locaux.
+- Un cas supplémentaire vérifie que des octets modifiés en présence d'un SSIM indisponible produisent `HASH_MISMATCH` / `ALERT`.
+- Les fichiers sont **des octets synthétiques, pas des images ni de l'audio valides** ; ce test n'évalue ni qualité visuelle, ni SSIM, ni signal audio.
+- Matrice CI maintenant **34 scénarios** : 19 violations à vérité connue, 1 cas propre local, 14 abstentions non classées. **Valeurs attendues, non mesurées avant CI** : TP=19, FP=0, FN=0, TN=1, abstentions=14.
+- CI de la tranche 7 (`42aea4e`) confirmée verte par l'utilisateur ; vérification requise sur le dernier SHA de cette tranche avant validation.
