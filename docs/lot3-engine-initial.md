@@ -204,3 +204,10 @@ The core must not be presented as production-ready or as a fully independently v
 - This enforces all artifact fields including identity, kind, digest, observation, size, nested `checks`, and unexpected-property rejection. Four additional regression test methods exercise these fields; prior history and grant tests remain in place.
 - This does **not** authenticate the issuer or provenance of historical records; lineage claims and independent custody remain outside lot 3.
 - Latest CI must be verified against the exact published commit before declaring the tranche validated or considering an Exit Gate.
+
+## Tranche 26 — Public schema-first API and README coherence (CI pending)
+
+- Public `handoff_monitor` package now exports `compare_handoff_validated` and `compare_journey_validated` with lazy validator imports; legacy `compare_handoff`, `compare_journey`, and `digest_file` remain available for compatible prevalidated calls.
+- README corrected: deterministic lot 3 code exists, remains incomplete and **does not attest independent remote receipt**. It includes strict usage and pins the `jsonschema==4.23.0` runtime requirement. Two test methods check public strict APIs and backward compatibility.
+- The canonical runtime schema applies only to the validated entrypoints. Passing untrusted records into legacy APIs remains unsupported. Neither API authenticates caller-provided grants, lineage history, or filesystem provenance.
+- This is not an Exit Gate. Confirm latest GitHub Actions CI for the final SHA before recording successful tests.
