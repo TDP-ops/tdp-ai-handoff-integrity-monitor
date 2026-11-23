@@ -176,3 +176,10 @@ The core must not be presented as production-ready or as a fully independently v
 - Five synthetic regression tests cover integer/null/blank paths, non-string artifact IDs, and permitted `Path` objects with unavailable files. An unavailable valid path still yields `UNKNOWN`, not proof of delivery.
 - These are **input-type defenses**, not filesystem confinement, path authenticity, secure custody or independent receiver evidence. The single-handoff strict entrypoint and auxiliary inputs must still be audited before the lot 3 Exit Gate.
 - Do not claim the new tests passed until GitHub Actions confirms the final commit.
+
+## Tranche 22 — Strict single-handoff auxiliary path guards (CI pending)
+
+- `compare_handoff_validated` now rejects non-dictionary `sender_files` / `receiver_files` and invalid artifact keys, blank string paths, non-path values, or null paths before invoking the byte comparator.
+- Five new synthetic regression test methods cover malformed containers and values, plus missing local files retaining `UNKNOWN` rather than becoming verified transfers.
+- The validation checks input structure/types only. It does **not** authenticate filesystem paths, prevent substitution, verify receiver custody, validate caller-supplied historical records or policy grants, or change the legacy `compare_handoff` API.
+- The exact final commit requires a fresh GitHub Actions confirmation; lot 3 Exit Gate stays open.
