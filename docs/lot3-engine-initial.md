@@ -197,3 +197,10 @@ The core must not be presented as production-ready or as a fully independently v
 - Five new regression test methods cover missing, non-string and unsupported kinds, invalid digest forms, and a structurally valid historical record. Malformed historical data returns `INVALID_MANIFEST` / `ALERT` rather than being mistaken for a verified identity collision.
 - This is **partial historical input validation**, not authentication of historical records, their provenance, or grant authorities. The strict interface and remaining records require a final audit before the lot 3 Exit Gate.
 - GitHub Actions must be checked on this tranche's final SHA before claiming its tests pass.
+
+## Tranche 25 — Canonical schema for historical artifacts (CI pending)
+
+- `compare_handoff_validated` now validates each caller-supplied `history` artifact against the existing canonical `$defs/artifact` Draft 2020-12 schema, rather than maintaining a separate hand-coded subset of rules.
+- This enforces all artifact fields including identity, kind, digest, observation, size, nested `checks`, and unexpected-property rejection. Four additional regression test methods exercise these fields; prior history and grant tests remain in place.
+- This does **not** authenticate the issuer or provenance of historical records; lineage claims and independent custody remain outside lot 3.
+- Latest CI must be verified against the exact published commit before declaring the tranche validated or considering an Exit Gate.
