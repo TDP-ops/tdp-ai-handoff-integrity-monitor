@@ -154,3 +154,11 @@ The new synthetic tests exercise the guards but cannot establish remote receiver
 Tests run as part of the existing `python3 -m unittest discover -s tests -p 'test_*.py' -v` CI command. Local development smoke tests succeeded for the initial 17 test scenarios before publication. **GitHub Actions conclusion for the published commit must still be observed**; do not claim CI green until actually confirmed.
 
 The core must not be presented as production-ready or as a fully independently verified artifact transfer.
+
+## Tranche 19 — Multi-hop schema-first entrypoint (CI pending)
+
+- `compare_journey_validated(plan, handoffs, *, file_evidence=None)` in `handoff_monitor/validation.py` validates the full run plan and each sent/received event against the canonical Draft 2020-12 definitions before calling `compare_journey`.
+- Malformed handoff arrays, missing event objects, schema-invalid records in later hops, and invalid plans return `INVALID_MANIFEST` / `ALERT` without executing the comparison or returning `PASS`.
+- Seven synthetic regression tests added in `tests/test_engine_journey_schema_validation.py`. The lower-level `compare_journey` remains available for already schema-validated callers; it does not enforce the boundary itself.
+- This change validates structure only. It does not authenticate custody, policy grants, historical lineage, or independent receiver observations. It does not establish a lot 3 Exit Gate.
+- Verify the final published commit in GitHub Actions before declaring the tranche tested.
