@@ -175,6 +175,13 @@ def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=N
                 or a.get("replaces_artifact_id") != b.get("replaces_artifact_id")):
             issues.append(finding("BROKEN_REFERENCE", "ALERT", aid, "Lineage differs"))
         ac, bc = a.get("checks", {}), b.get("checks", {})
+        # Locally available files cannot override an observation explicitly
+        # marked inaccessible or unchecked in a manifest. This still does not
+        # authenticate an access="verified" claim (lot 5).
+        if (a.get("observation", {}).get("access") != "verified"
+                or b.get("observation", {}).get("access") != "verified"):
+            issues.append(finding("UNVERIFIABLE", "UNKNOWN", aid,
+                                  "Sender or receiver access not verified in manifest"))
         # The receiver cannot silently remove or weaken declared controls.
         # Equal declarations are still claims, not independently audited policy.
         if ac != bc:
