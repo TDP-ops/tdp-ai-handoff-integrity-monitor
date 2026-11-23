@@ -51,3 +51,10 @@ Deterministic, schema-first single-handoff and linear multi-hop verification wit
 - Three targeted regression methods cover the three non-verified receiver access states, an unchecked sender, and contradictory local bytes.
 - A declared `verified` state is still **caller-supplied and unauthenticated**. This change does not claim independently authenticated remote delivery or eliminate every false-`PASS` path.
 - GitHub Actions verification on the final SHA is pending. Exit Gate **NOT APPROVED**.
+
+## Tranche 31 — Role-inconsistent observation source (CI pending)
+
+- An artifact's sender/receiver role can contradict its claimed observation source despite schema-valid metadata and matching caller-supplied local file bytes. This previously allowed a local `PASS` without even coherent observation provenance.
+- The comparator now marks `UNKNOWN` when the sender artifact claims `source="receiver"` or when the received artifact claims `source="sender"`. Any real local byte mismatch remains `ALERT`.
+- Three targeted tests cover both role contradictions and `ALERT` precedence over the unverified observation. A compliant source field remains **a caller claim, not authenticated receiver evidence**; actual provenance verification remains lot 5.
+- Do not approve Exit Gate or claim tests passed until the exact published commit's CI is confirmed.
