@@ -17,6 +17,7 @@ from test_lot4_adversarial_rules import CASES, adversarial_case
 from test_lot4_adversarial_journey import CASES as JOURNEY_CASES, adversarial_journey, two_hop_baseline
 from test_lot4_adversarial_replacements import CASES as REPLACEMENT_CASES, replacement_baseline, replacement_case, compare as compare_replacement
 from test_lot4_structural_abstentions import STRUCTURAL_CASES, structural_case
+from test_lot4_quality_abstentions import QUALITY_CASES, quality_case
 from handoff_monitor import compare_handoff_validated, compare_journey_validated
 
 
@@ -67,6 +68,15 @@ def run():
                  "truth": "violation",
                  "verdict": structural_case(kind, structure, tamper=True)["verdict"]})
 
+    for kind, quality in QUALITY_CASES:
+        rows.append({"case": "unsupported_quality_" + quality["check_type"],
+                     "truth": "evidence_unavailable",
+                     "verdict": quality_case(kind, quality)["verdict"]})
+    kind, quality = QUALITY_CASES[0]
+    rows.append({"case": "byte_change_despite_unavailable_image_ssim",
+                 "truth": "violation",
+                 "verdict": quality_case(kind, quality, tamper=True)["verdict"]})
+
     counts = {"TP": 0, "FP": 0, "FN": 0, "TN": 0,
               "unknown_with_known_truth": 0, "abstentions_unscored": 0}
     for row in rows:
@@ -109,8 +119,8 @@ def run():
     print(json.dumps(report, indent=2, sort_keys=True))
     # Gate on the expected performance of this deliberately bounded synthetic
     # sample; do not turn the measured performance into a general claim.
-    assert counts == {"TP": 18, "FP": 0, "FN": 0, "TN": 1,
-                      "unknown_with_known_truth": 0, "abstentions_unscored": 11}, counts
+    assert counts == {"TP": 19, "FP": 0, "FN": 0, "TN": 1,
+                      "unknown_with_known_truth": 0, "abstentions_unscored": 14}, counts
     return 0
 
 
