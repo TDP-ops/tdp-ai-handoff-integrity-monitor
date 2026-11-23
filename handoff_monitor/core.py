@@ -221,7 +221,9 @@ def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=N
             issues.append(finding("DECLARED_HASH_MISMATCH", "ALERT", aid, "Received digest does not match bytes"))
         if sha_a != sha_b:
             issues.append(finding("HASH_MISMATCH", "ALERT", aid, "Actual file bytes differ"))
-        elif not any(f.get("artifact_id") == aid and f["verdict"] == "ALERT" for f in issues):
+        elif not any(
+                f.get("artifact_id") == aid and f["verdict"] in ("ALERT", "UNKNOWN")
+                for f in issues):
             issues.append({"code": "EXACT_BYTES_MATCH", "verdict": "PASS", "artifact_id": aid,
                            "evidence_status": "observed", "explanation": "Locally computed byte hashes match"})
     if not left and not right:
