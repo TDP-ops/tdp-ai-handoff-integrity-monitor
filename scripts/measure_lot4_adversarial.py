@@ -15,6 +15,7 @@ sys.path.insert(0, str(ROOT / "tests"))
 from test_lot4_adversarial_baseline import AdversarialBaselineTests
 from test_lot4_adversarial_rules import CASES, adversarial_case
 from test_lot4_adversarial_journey import CASES as JOURNEY_CASES, adversarial_journey, two_hop_baseline
+from test_lot4_adversarial_replacements import CASES as REPLACEMENT_CASES, replacement_baseline, replacement_case, compare as compare_replacement
 from handoff_monitor import compare_handoff_validated, compare_journey_validated
 
 
@@ -47,6 +48,14 @@ def run():
         plan, hops = adversarial_journey(name)
         verdict = compare_journey_validated(plan, hops)["verdict"]
         rows.append({"case": name, "truth": "violation", "verdict": verdict})
+
+    rows.append({"case": "permitted_replacement_untrusted_grant",
+                 "truth": "evidence_unavailable",
+                 "verdict": compare_replacement(*replacement_baseline())["verdict"]})
+    for name, _expected_code in REPLACEMENT_CASES:
+        plan, sent, received = replacement_case(name)
+        rows.append({"case": name, "truth": "violation",
+                     "verdict": compare_replacement(plan, sent, received)["verdict"]})
 
     counts = {"TP": 0, "FP": 0, "FN": 0, "TN": 0,
               "unknown_with_known_truth": 0, "abstentions_unscored": 0}
@@ -90,8 +99,8 @@ def run():
     print(json.dumps(report, indent=2, sort_keys=True))
     # Gate on the expected performance of this deliberately bounded synthetic
     # sample; do not turn the measured performance into a general claim.
-    assert counts == {"TP": 12, "FP": 0, "FN": 0, "TN": 1,
-                      "unknown_with_known_truth": 0, "abstentions_unscored": 3}, counts
+    assert counts == {"TP": 17, "FP": 0, "FN": 0, "TN": 1,
+                      "unknown_with_known_truth": 0, "abstentions_unscored": 4}, counts
     return 0
 
 
