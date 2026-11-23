@@ -211,3 +211,10 @@ The core must not be presented as production-ready or as a fully independently v
 - README corrected: deterministic lot 3 code exists, remains incomplete and **does not attest independent remote receipt**. It includes strict usage and pins the `jsonschema==4.23.0` runtime requirement. Two test methods check public strict APIs and backward compatibility.
 - The canonical runtime schema applies only to the validated entrypoints. Passing untrusted records into legacy APIs remains unsupported. Neither API authenticates caller-provided grants, lineage history, or filesystem provenance.
 - This is not an Exit Gate. Confirm latest GitHub Actions CI for the final SHA before recording successful tests.
+
+## Tranche 27 — Reproducible measured line coverage (CI pending)
+
+- Added `scripts/measure_engine_coverage.py`, using standard-library `trace` and `dis` to run the existing test suite and report the number of executed/executable source lines for `core.py`, `journey.py`, `lineage.py`, and `validation.py`.
+- GitHub Actions runs this after the normal `unittest` suite, with no additional paid service or third-party dependency. The report is printed in the workflow log as JSON; the suite must contain at least one passing test.
+- This measures **line execution, not branch coverage, detection precision/recall, authenticated custody or end-to-end success**. The exact coverage numbers are not yet observed; do not assume a threshold or state the Exit Gate is passed.
+- Review the measured results and remaining adversarial cases before deciding the lot 3 Exit Gate. The final CI SHA needs user confirmation.
