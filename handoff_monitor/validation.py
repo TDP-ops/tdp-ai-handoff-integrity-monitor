@@ -62,3 +62,43 @@ def compare_handoff_validated(plan, sent, received, **kwargs):
             "findings": problems,
         }
     return compare_handoff(plan, sent, received, **kwargs)
+
+
+def compare_journey_validated(plan, handoffs, *, file_evidence=None):
+    """Validate every event and the plan before multi-hop comparison.
+
+    This validates caller-supplied records, not remote receipt or provenance.
+    The legacy compare_journey remains available for already-validated inputs.
+    """
+    from .journey import compare_journey
+
+    if not isinstance(handoffs, list):
+        return {
+            "run_id": plan.get("run_id") if isinstance(plan, dict) else None,
+            "verdict": "ALERT", "handoffs": [],
+            "findings": [finding("INVALID_MANIFEST", "ALERT",
+                                 explanation="handoffs: expected an array")],
+        }
+
+    problems = []
+    # Validate the plan even when no handoffs were supplied.
+    validators = _validators()
+    for error in validators["run_plan"].iter_errors(plan):
+        problems.append(finding("INVALID_MANIFEST", "ALERT",
+                                explanation=f"plan: {error.message}"))
+    for index, hop in enumerate(handoffs):
+        if not isinstance(hop, dict) or not isinstance(hop.get("sent"), dict) or not isinstance(hop.get("received"), dict):
+            problems.append(finding("INVALID_MANIFEST", "ALERT",
+                                    explanation=f"handoffs[{index}]: expected sent and received event objects"))
+            continue
+        for label, record in (("sent", hop["sent"]), ("received", hop["received"])):
+            for error in validators["event"].iter_errors(record):
+                location = ".".join(str(part) for part in error.absolute_path) or "<root>"
+                problems.append(finding("INVALID_MANIFEST", "ALERT",
+                                        explanation=f"handoffs[{index}].{label}.{location}: {error.message}"))
+    if problems:
+        return {
+            "run_id": plan.get("run_id") if isinstance(plan, dict) else None,
+            "verdict": "ALERT", "handoffs": [], "findings": problems,
+        }
+    return compare_journey(plan, handoffs, file_evidence=file_evidence)
