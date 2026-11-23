@@ -41,6 +41,22 @@ class StrictJourneyValidationTests(unittest.TestCase):
         self.hops.append(second)
         self.assert_invalid()
 
+    def test_per_handoff_alert_overrides_unknown_journey(self):
+        self.hops[0]["received"]["rule_ids"] = []
+        result = self.result()
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertEqual("ALERT", result["handoffs"][0]["verdict"])
+        self.assertIn("MISSING_REQUIRED_RULE", {
+            f["code"] for f in result["handoffs"][0]["findings"]})
+
+    def test_schema_error_cannot_be_masked_by_valid_journey(self):
+        self.hops[0]["received"]["artifacts"][0]["content_sha256"] = "invalid"
+        result = self.result()
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertEqual([], result["handoffs"])
+        self.assertIn("INVALID_MANIFEST", {
+            f["code"] for f in result["findings"]})
+
     def test_non_object_hop_is_rejected(self):
         self.hops.append(None)
         self.assert_invalid()
