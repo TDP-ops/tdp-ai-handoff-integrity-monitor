@@ -183,3 +183,10 @@ The core must not be presented as production-ready or as a fully independently v
 - Five new synthetic regression test methods cover malformed containers and values, plus missing local files retaining `UNKNOWN` rather than becoming verified transfers.
 - The validation checks input structure/types only. It does **not** authenticate filesystem paths, prevent substitution, verify receiver custody, validate caller-supplied historical records or policy grants, or change the legacy `compare_handoff` API.
 - The exact final commit requires a fresh GitHub Actions confirmation; lot 3 Exit Gate stays open.
+
+## Tranche 23 — Caller-supplied history and grant structure guards (CI pending)
+
+- The schema-first single-handoff API now rejects non-collection `history`, non-object historical records, missing identity fields, malformed parent/derivation identifiers, and invalid replacement references before invoking lineage processing.
+- `policy_grants` must be an iterable collection of triples of non-empty strings; malformed grants become `INVALID_MANIFEST` / `ALERT` rather than causing downstream membership or unpacking errors.
+- Five targeted regression test methods cover malformed history, grants, and a well-formed but unauthenticated history baseline. These checks **do not authenticate** a policy issuer or independent event history and do not validate the full historical artifact record schema.
+- Exact GitHub Actions CI conclusion remains to be confirmed. Lot 3 Exit Gate remains open.
