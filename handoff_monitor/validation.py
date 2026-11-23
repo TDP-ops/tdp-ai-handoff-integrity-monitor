@@ -55,6 +55,23 @@ def validate_handoff_records(plan, sent, received):
 def compare_handoff_validated(plan, sent, received, **kwargs):
     """Schema-first comparison; invalid records never produce PASS or UNKNOWN."""
     problems = validate_handoff_records(plan, sent, received)
+    # Auxiliary local paths are outside the canonical JSON event schema.
+    # Reject malformed inputs before the byte comparator can access them.
+    for role in ("sender_files", "receiver_files"):
+        paths = kwargs.get(role)
+        if paths is None:
+            continue
+        if not isinstance(paths, dict):
+            problems.append(finding("INVALID_MANIFEST", "ALERT",
+                                    explanation=f"{role}: expected an object"))
+            continue
+        for artifact_id, path in paths.items():
+            if (not isinstance(artifact_id, str) or not artifact_id
+                    or not isinstance(path, (str, Path))
+                    or (isinstance(path, str) and not path.strip())):
+                problems.append(finding(
+                    "INVALID_MANIFEST", "ALERT",
+                    explanation=f"{role}: invalid artifact ID or file path"))
     if problems:
         return {
             "handoff_id": sent.get("handoff_id") if isinstance(sent, dict) else None,
