@@ -256,6 +256,52 @@ class StrictValidationTests(unittest.TestCase):
             self.assertEqual("ALERT", result["verdict"])
             self.assertIn("INVALID_MANIFEST", {f["code"] for f in result["findings"]})
 
+    def test_unverified_receiver_access_blocks_local_pass(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "same"
+            path.write_bytes(b"identical local bytes")
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            for event in (self.sent, self.received):
+                event["artifacts"][0]["content_sha256"] = digest
+            for access in ("not_accessible", "not_checked", "unavailable"):
+                with self.subTest(access=access):
+                    self.received["artifacts"][0]["observation"]["access"] = access
+                    result = compare_handoff_validated(
+                        self.plan, self.sent, self.received,
+                        sender_files={"ART-001": path},
+                        receiver_files={"ART-001": path})
+                    self.assertEqual("UNKNOWN", result["verdict"])
+                    self.assertIn("UNVERIFIABLE", {f["code"] for f in result["findings"]})
+
+    def test_unverified_sender_access_blocks_local_pass(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "same"
+            path.write_bytes(b"identical local bytes")
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            for event in (self.sent, self.received):
+                event["artifacts"][0]["content_sha256"] = digest
+            self.sent["artifacts"][0]["observation"]["access"] = "not_checked"
+            result = compare_handoff_validated(
+                self.plan, self.sent, self.received,
+                sender_files={"ART-001": path}, receiver_files={"ART-001": path})
+            self.assertEqual("UNKNOWN", result["verdict"])
+
+    def test_declared_unverified_access_does_not_hide_hash_mismatch(self):
+        with tempfile.TemporaryDirectory() as folder:
+            sender = Path(folder) / "sender"
+            receiver = Path(folder) / "receiver"
+            sender.write_bytes(b"original")
+            receiver.write_bytes(b"modified")
+            self.received["artifacts"][0]["observation"]["access"] = "not_checked"
+            self.sent["artifacts"][0]["content_sha256"] = hashlib.sha256(sender.read_bytes()).hexdigest()
+            self.received["artifacts"][0]["content_sha256"] = hashlib.sha256(receiver.read_bytes()).hexdigest()
+            result = compare_handoff_validated(
+                self.plan, self.sent, self.received,
+                sender_files={"ART-001": sender},
+                receiver_files={"ART-001": receiver})
+            self.assertEqual("ALERT", result["verdict"])
+            self.assertIn("HASH_MISMATCH", {f["code"] for f in result["findings"]})
+
     def test_missing_plan_version_never_passes(self):
         self.plan.pop("plan_version")
         self.check_invalid()
