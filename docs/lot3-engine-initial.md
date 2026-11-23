@@ -162,3 +162,10 @@ The core must not be presented as production-ready or as a fully independently v
 - Seven synthetic regression tests added in `tests/test_engine_journey_schema_validation.py`. The lower-level `compare_journey` remains available for already schema-validated callers; it does not enforce the boundary itself.
 - This change validates structure only. It does not authenticate custody, policy grants, historical lineage, or independent receiver observations. It does not establish a lot 3 Exit Gate.
 - Verify the final published commit in GitHub Actions before declaring the tranche tested.
+
+## Tranche 20 — Multi-hop evidence container defense (CI pending)
+
+- `compare_journey_validated` now rejects a non-mapping `file_evidence`, non-mapping handoff entries, and non-mapping `sender_files` / `receiver_files` before calling the lower-level comparator.
+- Invalid structures return `INVALID_MANIFEST` / `ALERT`, with no per-handoff results. Five synthetic regression tests cover malformed and valid empty evidence containers.
+- These checks are **container-level**, not proof of actual filesystem paths, trustworthiness of caller-supplied evidence, independent custody, or complete runtime API hardening. Additional audit of path values and other auxiliary inputs remains necessary before lot 3 Exit Gate.
+- Final GitHub Actions CI result must be confirmed for this exact commit.
