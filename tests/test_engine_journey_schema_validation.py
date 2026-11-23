@@ -75,6 +75,34 @@ class StrictJourneyValidationTests(unittest.TestCase):
         self.assertEqual("UNKNOWN", compare_journey_validated(
             self.plan, self.hops, file_evidence={"H-A-B": {"sender_files": {}, "receiver_files": {}}})["verdict"])
 
+    def test_integer_path_is_rejected_before_file_access(self):
+        self.assertEqual("ALERT", compare_journey_validated(
+            self.plan, self.hops,
+            file_evidence={"H-A-B": {"sender_files": {"ART-001": 7}}})["verdict"])
+
+    def test_null_path_is_rejected(self):
+        self.assertEqual("ALERT", compare_journey_validated(
+            self.plan, self.hops,
+            file_evidence={"H-A-B": {"receiver_files": {"ART-001": None}}})["verdict"])
+
+    def test_blank_path_is_rejected(self):
+        self.assertEqual("ALERT", compare_journey_validated(
+            self.plan, self.hops,
+            file_evidence={"H-A-B": {"sender_files": {"ART-001": "  "}}})["verdict"])
+
+    def test_non_string_artifact_key_is_rejected(self):
+        self.assertEqual("ALERT", compare_journey_validated(
+            self.plan, self.hops,
+            file_evidence={"H-A-B": {"sender_files": {12: "local.bin"}}})["verdict"])
+
+    def test_path_object_is_allowed_but_missing_file_is_unknown(self):
+        result = compare_journey_validated(
+            self.plan, self.hops,
+            file_evidence={"H-A-B": {
+                "sender_files": {"ART-001": Path("/nonexistent-handoff-monitor-test-file")},
+                "receiver_files": {"ART-001": Path("/nonexistent-handoff-monitor-test-file")}}})
+        self.assertEqual("UNKNOWN", result["verdict"])
+
     def test_empty_handoffs_still_validates_plan(self):
         self.hops = []
         self.plan["untrusted"] = True
