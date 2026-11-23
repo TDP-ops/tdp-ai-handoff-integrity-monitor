@@ -60,3 +60,11 @@ Baseline tranche 1 `bed2c6c` CI was confirmed green by the project owner. Tranch
 - Trois nouveaux scénarios exécutables via `compare_handoff_validated` dans `tests/test_lot4_adversarial_rules.py` : artefact remplacé par un identifiant inattendu (attendu `MISSING_REQUIRED_ARTIFACT`), type modifié (attendu `ARTIFACT_ID_COLLISION`), contrôle `exact_bytes` retiré côté récepteur (attendu `MISSING_REQUIRED_RULE`).
 - `scripts/measure_lot4_adversarial.py` inclut désormais **12 cas** (9 violations connues, 1 cas propre local, 2 abstentions sans vérité terrain). **Valeurs attendues avant CI :** TP=9, FP=0, FN=0, TN=1, abstentions=2.
 - Les résultats doivent être confirmés par la CI sur le dernier SHA. Ni authenticité des réceptions ni performance générale en production ne sont démontrées.
+
+## Tranche 5 — Continuité multi-agent linéaire (CI à confirmer)
+
+- `tests/test_lot4_adversarial_journey.py` construit un parcours canonique à deux transferts (A→B→C) via l'entrée stricte `compare_journey_validated`.
+- Trois mutations adversariales : second transfert absent (attendu `CONTRACT_MISMATCH`), identifiant d'événement réutilisé entre transferts (attendu `DUPLICATE_OR_UNEXPECTED`), artefact perdu entre deux étapes (attendu `MISSING_REQUIRED_ARTIFACT`).
+- Parcours cohérent sans preuve distante : `UNKNOWN`, **pas de `PASS` global**.
+- La matrice CI exécute désormais **16 cas** : **12 violations**, **1 cas local propre**, **3 abstentions sans vérité terrain**. Résultats **attendus avant CI** : TP=12, FP=0, FN=0, TN=1, abstentions=3.
+- Les tests utilisent des données synthétiques. Ni forks/joins ni réception distante authentifiée ne sont implémentés. Ne pas déclarer ces résultats mesurés tant que le SHA final n'est pas vert.
