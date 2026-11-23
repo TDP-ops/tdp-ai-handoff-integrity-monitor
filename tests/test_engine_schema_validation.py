@@ -91,6 +91,45 @@ class StrictValidationTests(unittest.TestCase):
                     self.plan, self.sent, self.received, history=history)
                 self.assertEqual("ALERT", result["verdict"])
 
+    def test_missing_history_kind_is_rejected_as_invalid(self):
+        record = {"artifact_id": "ART-001", "artifact_version_id": "ART-001-V1"}
+        result = compare_handoff_validated(
+            self.plan, self.sent, self.received, history=[record])
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("INVALID_MANIFEST", {f["code"] for f in result["findings"]})
+
+    def test_non_string_history_kind_is_rejected(self):
+        record = dict(self.sent["artifacts"][0])
+        record["kind"] = ["image"]
+        result = compare_handoff_validated(
+            self.plan, self.sent, self.received, history=[record])
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("INVALID_MANIFEST", {f["code"] for f in result["findings"]})
+
+    def test_unsupported_history_kind_is_rejected(self):
+        record = dict(self.sent["artifacts"][0])
+        record["kind"] = "not-supported"
+        result = compare_handoff_validated(
+            self.plan, self.sent, self.received, history=[record])
+        self.assertEqual("ALERT", result["verdict"])
+
+    def test_malformed_history_digest_is_rejected(self):
+        for digest in ("not-a-hash", "A" * 64, 42, False):
+            with self.subTest(digest=digest):
+                record = dict(self.sent["artifacts"][0])
+                record["content_sha256"] = digest
+                result = compare_handoff_validated(
+                    self.plan, self.sent, self.received, history=[record])
+                self.assertEqual("ALERT", result["verdict"])
+                self.assertIn("INVALID_MANIFEST", {f["code"] for f in result["findings"]})
+
+    def test_valid_historical_kind_and_digest_are_accepted_as_inputs(self):
+        record = dict(self.sent["artifacts"][0])
+        result = compare_handoff_validated(
+            self.plan, self.sent, self.received, history=[record])
+        self.assertNotIn("INVALID_MANIFEST", {f["code"] for f in result["findings"]})
+        self.assertEqual("UNKNOWN", result["verdict"])
+
     def test_non_collection_grants_are_rejected(self):
         result = compare_handoff_validated(
             self.plan, self.sent, self.received, policy_grants={"policy": "invalid"})
