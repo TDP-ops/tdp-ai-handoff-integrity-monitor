@@ -76,6 +76,42 @@ class StrictValidationTests(unittest.TestCase):
             receiver_files={"ART-001": Path("/nonexistent-handoff-receiver-file")})
         self.assertEqual("UNKNOWN", result["verdict"])
 
+    def test_non_collection_history_is_rejected(self):
+        result = compare_handoff_validated(
+            self.plan, self.sent, self.received, history={"artifact_id": "ART-001"})
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("INVALID_MANIFEST", {f["code"] for f in result["findings"]})
+
+    def test_malformed_historical_record_is_rejected(self):
+        for history in ([None], [{"artifact_id": "ART-001"}],
+                        [{"artifact_id": "ART-001", "artifact_version_id": "v1",
+                          "parent_version_ids": "v0"}]):
+            with self.subTest(history=history):
+                result = compare_handoff_validated(
+                    self.plan, self.sent, self.received, history=history)
+                self.assertEqual("ALERT", result["verdict"])
+
+    def test_non_collection_grants_are_rejected(self):
+        result = compare_handoff_validated(
+            self.plan, self.sent, self.received, policy_grants={"policy": "invalid"})
+        self.assertEqual("ALERT", result["verdict"])
+
+    def test_malformed_grant_triples_are_rejected(self):
+        for grants in ([None], [("policy", "modified")],
+                       [("policy", "modified", 3)],
+                       [("policy", "", "ART-001")]):
+            with self.subTest(grants=grants):
+                result = compare_handoff_validated(
+                    self.plan, self.sent, self.received, policy_grants=grants)
+                self.assertEqual("ALERT", result["verdict"])
+
+    def test_well_formed_untrusted_history_does_not_authenticate_lineage(self):
+        record = dict(self.sent["artifacts"][0])
+        record["parent_version_ids"] = []
+        result = compare_handoff_validated(
+            self.plan, self.sent, self.received, history=[record])
+        self.assertEqual("UNKNOWN", result["verdict"])
+
     def test_missing_plan_version_never_passes(self):
         self.plan.pop("plan_version")
         self.check_invalid()
