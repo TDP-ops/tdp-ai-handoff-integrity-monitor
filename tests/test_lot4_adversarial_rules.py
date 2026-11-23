@@ -23,6 +23,9 @@ CASES = (
     ("reused_event_identity", "DUPLICATE_OR_UNEXPECTED"),
     ("stale_contract_version", "CONTRACT_MISMATCH"),
     ("required_artifact_removed", "MISSING_REQUIRED_ARTIFACT"),
+    ("unexpected_artifact_identity", "MISSING_REQUIRED_ARTIFACT"),
+    ("artifact_kind_changed", "ARTIFACT_ID_COLLISION"),
+    ("exact_byte_check_removed", "MISSING_REQUIRED_RULE"),
 )
 
 
@@ -40,6 +43,12 @@ def adversarial_case(name):
         received["contract_version"] = "0"
     elif name == "required_artifact_removed":
         received["artifacts"] = []
+    elif name == "unexpected_artifact_identity":
+        received["artifacts"][0]["artifact_id"] = "ART-UNEXPECTED"
+    elif name == "artifact_kind_changed":
+        received["artifacts"][0]["kind"] = "pdf"
+    elif name == "exact_byte_check_removed":
+        received["artifacts"][0]["checks"] = {}
     else:
         raise ValueError(f"Unknown scenario: {name}")
     return plan, sent, received
