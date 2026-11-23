@@ -113,6 +113,14 @@ def compare_journey_validated(plan, handoffs, *, file_evidence=None):
                     if paths is not None and not isinstance(paths, dict):
                         problems.append(finding("INVALID_MANIFEST", "ALERT",
                                                 explanation=f"file_evidence[{handoff_id}].{role}: expected an object"))
+                    elif isinstance(paths, dict):
+                        for artifact_id, path in paths.items():
+                            if (not isinstance(artifact_id, str) or not artifact_id
+                                    or not isinstance(path, (str, Path))
+                                    or (isinstance(path, str) and not path.strip())):
+                                problems.append(finding(
+                                    "INVALID_MANIFEST", "ALERT",
+                                    explanation=f"file_evidence[{handoff_id}].{role}: invalid artifact ID or file path"))
     if problems:
         return {
             "run_id": plan.get("run_id") if isinstance(plan, dict) else None,
