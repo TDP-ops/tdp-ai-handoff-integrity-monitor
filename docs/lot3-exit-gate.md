@@ -58,3 +58,10 @@ Deterministic, schema-first single-handoff and linear multi-hop verification wit
 - The comparator now marks `UNKNOWN` when the sender artifact claims `source="receiver"` or when the received artifact claims `source="sender"`. Any real local byte mismatch remains `ALERT`.
 - Three targeted tests cover both role contradictions and `ALERT` precedence over the unverified observation. A compliant source field remains **a caller claim, not authenticated receiver evidence**; actual provenance verification remains lot 5.
 - Do not approve Exit Gate or claim tests passed until the exact published commit's CI is confirmed.
+
+## Tranche 32 — No contradictory per-artifact PASS finding (CI pending)
+
+- The global verdict could be `UNKNOWN` for a local observation with unverified `access` or role-inconsistent `source`, while that **same artifact** still had an `EXACT_BYTES_MATCH` finding marked `PASS`. This is contradictory for consumers of detailed findings.
+- `EXACT_BYTES_MATCH` is now emitted only when that artifact has **no `ALERT` or `UNKNOWN` findings**; actual byte hashing, digest mismatch alerts and aggregate verdict precedence are unchanged.
+- Three focused synthetic tests cover unverified access, role-inconsistent observation and an ordinary local verified-byte match retaining its local `PASS` finding. The latter remains **local**, not independent remote custody.
+- Exit Gate remains **NOT APPROVED** until the latest GitHub Actions run is confirmed green and the bounded V0 audit decision is documented.
