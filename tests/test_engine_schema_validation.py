@@ -130,6 +130,42 @@ class StrictValidationTests(unittest.TestCase):
         self.assertNotIn("INVALID_MANIFEST", {f["code"] for f in result["findings"]})
         self.assertEqual("UNKNOWN", result["verdict"])
 
+    def test_history_missing_required_observation_is_rejected(self):
+        record = dict(self.sent["artifacts"][0])
+        record.pop("observation")
+        result = compare_handoff_validated(
+            self.plan, self.sent, self.received, history=[record])
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("INVALID_MANIFEST", {f["code"] for f in result["findings"]})
+
+    def test_history_invalid_size_and_observation_are_rejected(self):
+        for change in (
+                {"size_bytes": -1},
+                {"observation": {"source": "invented", "access": "verified"}},
+                {"extra_untrusted": True}):
+            with self.subTest(change=change):
+                record = dict(self.sent["artifacts"][0])
+                record.update(change)
+                result = compare_handoff_validated(
+                    self.plan, self.sent, self.received, history=[record])
+                self.assertEqual("ALERT", result["verdict"])
+                self.assertIn("INVALID_MANIFEST", {f["code"] for f in result["findings"]})
+
+    def test_history_duplicate_parent_ids_are_rejected(self):
+        record = dict(self.sent["artifacts"][0])
+        record["parent_version_ids"] = ["v0", "v0"]
+        result = compare_handoff_validated(
+            self.plan, self.sent, self.received, history=[record])
+        self.assertEqual("ALERT", result["verdict"])
+
+    def test_history_invalid_nested_checks_are_rejected(self):
+        record = dict(self.sent["artifacts"][0])
+        record["checks"] = {"exact_bytes": "yes"}
+        result = compare_handoff_validated(
+            self.plan, self.sent, self.received, history=[record])
+        self.assertEqual("ALERT", result["verdict"])
+        self.assertIn("INVALID_MANIFEST", {f["code"] for f in result["findings"]})
+
     def test_non_collection_grants_are_rejected(self):
         result = compare_handoff_validated(
             self.plan, self.sent, self.received, policy_grants={"policy": "invalid"})
