@@ -107,3 +107,10 @@ Baseline tranche 1 `bed2c6c` CI was confirmed green by the project owner. Tranch
 - Les **37 scénarios du corpus restent identiques**. Attendus avant nouvelle CI : TP=19, FP=0, FN=0, TN=4, `unknown_violation=0`, `unknown_clean=0`, abstentions non classées=14.
 - La CI précédente `4b6af3d` a été confirmée verte par l'utilisateur. La publication de la tranche 10 et ses quatre nouvelles méthodes de test doivent être validées sur le dernier SHA.
 - Les métriques décrivent seulement un petit corpus local construit ; elles ne constituent pas une estimation des performances en production.
+
+## Tranche 11 — Rejet et modification déclarée (CI à confirmer)
+
+- `tests/test_lot4_adversarial_lifecycle.py` teste l'API stricte sur **quatre violations déclaratives** : rejet hors contrat, rejet sans motif, rejet explicitement non autorisé et modification hors contrat. Le résultat attendu est `ALERT` avec le code de constat correspondant.
+- Deux cas où l'événement est autorisé *dans le contrat* mais sans preuve de politique indépendante restent `UNKNOWN` : rejet déclaré et modification déclarée. **Cela ne démontre ni modification du contenu, ni suppression, ni autorisation authentifiée.**
+- Les six scénarios rejoignent le rapport CI : **43 cas synthétiques au total**, 23 violations connues, 4 témoins propres locaux, 16 abstentions sans vérité terrain. Attendus **non encore confirmés par la nouvelle CI** : TP=23, FP=0, FN=0, TN=4, abstentions=16.
+- CI précédente `3b60105` confirmée verte par l'utilisateur. Aucun changement du moteur.
