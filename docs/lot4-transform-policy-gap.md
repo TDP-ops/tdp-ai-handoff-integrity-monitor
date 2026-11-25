@@ -36,3 +36,16 @@ Acceptance behavior for a prospective supported contract revision:
 5. Update the original Lot 4 Exit Gate and Notion only with independently demonstrated outcomes. This assessment **does not authorize reducing** the original format/graph scope.
 
 No engine change is justified until the contract can encode which transformation is being authorized.
+
+## Implementation update — 2026-11-25 (CI pending)
+
+The V0 lifecycle schema now permits **optional** `transform_id`. The deterministic engine compares a declared `modified.transform_id` with the active contract's `allowed_transforms` in both a single handoff and a linear journey's cross-hop version transition.
+
+- **Declared ID absent from the allowlist:** `UNDECLARED_TRANSFORMATION` / `ALERT`.
+- **Matching ID:** no transform-allowlist alert, but the verdict remains `UNKNOWN` without independently authenticated evidence.
+- **Legacy `modified` event without `transform_id`:** explicit `UNVERIFIABLE` / `UNKNOWN`, never implicit authorization.
+- **Events not of type `modified`:** continue under their existing lifecycle rules.
+
+Implementation and strict tests: `schemas/handoff-v0.schema.json`, `handoff_monitor/lineage.py`, `handoff_monitor/journey.py`, `tests/test_lot4_transform_policy.py`, plus the synthetic score script. New expected corpus: **63** scenarios (35 known violations, 4 clean local cases, 24 unscored abstentions). **Do not mark as validated until the newest GitHub Actions SHA is green.**
+
+Still not implemented: proof of the **actual file transformation**, independently authenticated policy and scoped grants, or comprehensive extraction of media/document structure. The original full Lot 4 Exit Gate remains **OPEN**.
