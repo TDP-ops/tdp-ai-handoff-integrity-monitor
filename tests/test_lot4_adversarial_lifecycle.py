@@ -18,9 +18,12 @@ VIOLATIONS = (
     ("modification_not_in_contract", "UNDECLARED_TRANSFORMATION"),
     ("rejection_wrong_step", "UNDECLARED_REJECTION"),
     ("modification_wrong_step", "UNDECLARED_TRANSFORMATION"),
+    ("sender_rejection_wrong_step", "UNDECLARED_REJECTION"),
+    ("retirement_wrong_step", "UNDECLARED_REJECTION"),
 )
 
-ABSTENTIONS = ("declared_rejection_untrusted", "declared_modification_untrusted")
+ABSTENTIONS = ("declared_rejection_untrusted", "declared_modification_untrusted",
+               "declared_sender_rejection_untrusted")
 
 
 def load(name):
@@ -35,8 +38,11 @@ def lifecycle_case(name):
     is_modification = name in (
         "modification_not_in_contract", "modification_wrong_step",
         "declared_modification_untrusted")
-    event_type = "modified" if is_modification else "rejected"
-    if name != "rejection_not_in_contract" and name != "modification_not_in_contract":
+    is_retirement = name == "retirement_wrong_step"
+    sender_owned = name in ("sender_rejection_wrong_step",
+                            "declared_sender_rejection_untrusted")
+    event_type = "modified" if is_modification else "retired" if is_retirement else "rejected"
+    if name not in ("rejection_not_in_contract", "modification_not_in_contract"):
         contract["allowed_lifecycle_events"].append(event_type)
     event = {
         "event_id": "E-LOT4-LIFECYCLE",
@@ -48,9 +54,13 @@ def lifecycle_case(name):
     }
     if not is_modification and name != "rejection_without_reason":
         event["reason"] = "Synthetic rejection scenario"
-    if name in ("rejection_wrong_step", "modification_wrong_step"):
+    if name in ("rejection_wrong_step", "modification_wrong_step",
+                "retirement_wrong_step"):
         event["step_id"] = "A"
-    received["lifecycle_events"] = [event]
+    if sender_owned:
+        sent["lifecycle_events"] = [event]
+    else:
+        received["lifecycle_events"] = [event]
     return plan, sent, received
 
 
