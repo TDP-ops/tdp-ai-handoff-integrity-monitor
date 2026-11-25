@@ -4,6 +4,7 @@ A journey is an ordered list of {"sent": manifest, "received": manifest}.
 All data is caller-supplied; it is NOT authenticated receipt evidence.
 """
 from .core import compare_handoff, finding
+from .lineage import check_transform_declaration
 
 
 def _items(manifest):
@@ -108,6 +109,8 @@ def compare_journey(plan, handoffs, *, file_evidence=None):
                             issues.append(finding("UNDECLARED_TRANSFORMATION", "ALERT", aid,
                                                   "Modification expressly unauthorized"))
                         else:
+                            for event in events:
+                                issues.extend(check_transform_declaration(event, contracts[0]))
                             issues.append(finding("UNVERIFIABLE", "UNKNOWN", aid,
                                                   "Version transition declared but not authenticated"))
                     if old_v == new_v and (earlier_art.get("content_sha256") and now_art.get("content_sha256")
