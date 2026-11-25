@@ -129,3 +129,11 @@ Baseline tranche 1 `bed2c6c` CI was confirmed green by the project owner. Tranch
 - Un témoin envoyé à la bonne étape, mais dont la politique demeure non authentifiée, doit rester `UNKNOWN`. La validation stricte s'applique ; les appels internes historiques sans étape de frontière conservent leur comportement.
 - Matrice portée à **48 scénarios synthétiques** : **27 violations**, **4 contrôles locaux propres**, **17 abstentions**. **Valeurs attendues avant la CI du SHA final :** TP=27, FP=0, FN=0, TN=4, abstentions=17.
 - Ces tests ne prouvent pas la suppression physique d'un artefact, son contenu ou une autorisation indépendante. Le lot 4 et son Exit Gate restent ouverts.
+
+## Tranche 14 — Cohérence des grants déclarés (CI à confirmer)
+
+- CI de la tranche 13 `7deb77f` **verte confirmée par l'utilisateur**.
+- `tests/test_lot4_policy_grants.py` exécute l'API stricte sur deux grants fournis par l'appelant **incohérents** (référence de politique incorrecte et type d'événement incorrect) : `ALERT` / `UNDECLARED_REJECTION`.
+- Deux grants **correspondants**, mais toujours fournis sans provenance indépendamment authentifiée, doivent conserver `UNKNOWN` / `UNVERIFIABLE`. Le test ne démontre pas la vérification cryptographique d'une politique.
+- Matrice étendue à **52 scénarios synthétiques** : 29 violations, 4 témoins locaux propres et 19 abstentions. Attendus avant CI du nouveau SHA : TP=29, FP=0, FN=0, TN=4, `unknown_violation=0`, `unknown_clean=0`, abstentions=19.
+- Aucun changement du moteur ; aucune nouvelle dépendance. Le lot 4 reste ouvert, les extracteurs structurels et les garanties de réception authentifiée n'étant pas validés.
