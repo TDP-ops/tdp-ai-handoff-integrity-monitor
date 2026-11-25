@@ -137,3 +137,10 @@ Baseline tranche 1 `bed2c6c` CI was confirmed green by the project owner. Tranch
 - Deux grants **correspondants**, mais toujours fournis sans provenance indépendamment authentifiée, doivent conserver `UNKNOWN` / `UNVERIFIABLE`. Le test ne démontre pas la vérification cryptographique d'une politique.
 - Matrice étendue à **52 scénarios synthétiques** : 29 violations, 4 témoins locaux propres et 19 abstentions. Attendus avant CI du nouveau SHA : TP=29, FP=0, FN=0, TN=4, `unknown_violation=0`, `unknown_clean=0`, abstentions=19.
 - Aucun changement du moteur ; aucune nouvelle dépendance. Le lot 4 reste ouvert, les extracteurs structurels et les garanties de réception authentifiée n'étant pas validés.
+
+## Tranche 15 — Versions inter-agents (CI à confirmer)
+
+- CI précédente `d093965` verte, confirmée utilisateur.
+- Tests stricts A→B→C : 3 violations V1→V2 (`ALERT`) et 1 transition déclarée sans authentification (`UNKNOWN`).
+- Matrice attendue : **56 scénarios**, 32 violations, 4 témoins propres locaux, 20 abstentions ; CI du nouveau SHA non encore confirmée.
+- Pas de changement moteur ; Exit Gate lot 4 ouvert.
