@@ -90,7 +90,7 @@ def run():
 
     report = score_rows(rows)
     print(json.dumps(report, indent=2, sort_keys=True))
-    expected = {"TP": 23, "FP": 0, "FN": 0, "TN": 4,
+    expected = {"TP": 25, "FP": 0, "FN": 0, "TN": 4,
                 "unknown_violation": 0, "unknown_clean": 0,
                 "abstentions_unscored": 16}
     assert report["counts"] == expected, report["counts"]
