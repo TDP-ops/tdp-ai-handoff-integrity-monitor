@@ -51,3 +51,9 @@ Do not proceed to Lot 5 solely because 37 constructed scenarios pass. Keep GitHu
 - The latest prior tranche `65a080a` CI was confirmed green by the owner.
 - The audit documented in [Transformation authorization gap](lot4-transform-policy-gap.md) confirms `allowed_transforms` is required by the schema but not enforced by the V0 runtime, because existing lifecycle events do not identify a transformation operation. Version transition tests do not establish compliance with this allowlist.
 - **Exit Gate remains OPEN.** A backward-compatible schema/API design decision and executable mismatch/abstention cases are prerequisites before claiming supported transformation authorization; no engine code was changed in this audit.
+
+## Build progress — transform allowlist now enforced (latest CI pending)
+
+A backward-compatible V0 extension adds optional `transform_id` to `modified` lifecycle events and checks declared IDs against the active `allowed_transforms` list in strict single-hop and cross-hop evaluation. Disallowed identifiers produce `ALERT`; matching identifiers and legacy missing identifiers remain `UNKNOWN` without independent policy and content evidence. See [transform policy status](lot4-transform-policy-gap.md).
+
+The synthetic evaluation is expected to cover **63** cases (35 known violations, four clean local byte witnesses, 24 unscored abstentions). These numbers are **not yet CI-confirmed for the latest implementation**. The full Lot 4 Exit Gate remains OPEN because actual transformation contents, multimedia structures and quality metrics are still not verified; remote receipt is outside this local V0 gate.
