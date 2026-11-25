@@ -201,6 +201,19 @@ class LineageAndLifecycleTests(unittest.TestCase):
                                    self.contract, policy_grants={("approval-other", "rejected", "a")})
         self.assertIn("UNDECLARED_REJECTION", self.codes(findings))
 
+    def test_legacy_lifecycle_without_boundary_metadata_remains_unknown(self):
+        # Direct legacy helper calls may omit full sent/received metadata.
+        self.contract["allowed_lifecycle_events"] = ["rejected"]
+        event = {"event_id": "rej-legacy", "artifact_id": "a",
+                 "event_type": "rejected", "step_id": "A",
+                 "authorized_by_policy": True, "reason": "synthetic",
+                 "policy_ref": "approval-1"}
+        findings = check_lifecycle(
+            {"lifecycle_events": [event]}, {}, self.contract,
+            policy_grants={("approval-1", "rejected", "a")})
+        self.assertIn("UNVERIFIABLE", self.codes(findings))
+        self.assertNotIn("UNDECLARED_REJECTION", self.codes(findings))
+
     def test_matching_grant_rejection_is_still_unknown_without_provenance(self):
         self.contract["allowed_lifecycle_events"] = ["rejected"]
         event = {"event_id": "rej-1", "artifact_id": "a", "event_type": "rejected",
