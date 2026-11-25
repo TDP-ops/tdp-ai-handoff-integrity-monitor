@@ -58,6 +58,8 @@ def lifecycle_case(name):
                 "retirement_wrong_step"):
         event["step_id"] = "A"
     if sender_owned:
+        if name == "declared_sender_rejection_untrusted":
+            event["step_id"] = "A"
         sent["lifecycle_events"] = [event]
     else:
         received["lifecycle_events"] = [event]
