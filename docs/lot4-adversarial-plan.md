@@ -114,3 +114,10 @@ Baseline tranche 1 `bed2c6c` CI was confirmed green by the project owner. Tranch
 - Deux cas où l'événement est autorisé *dans le contrat* mais sans preuve de politique indépendante restent `UNKNOWN` : rejet déclaré et modification déclarée. **Cela ne démontre ni modification du contenu, ni suppression, ni autorisation authentifiée.**
 - Les six scénarios rejoignent le rapport CI : **43 cas synthétiques au total**, 23 violations connues, 4 témoins propres locaux, 16 abstentions sans vérité terrain. Attendus **non encore confirmés par la nouvelle CI** : TP=23, FP=0, FN=0, TN=4, abstentions=16.
 - CI précédente `3b60105` confirmée verte par l'utilisateur. Aucun changement du moteur.
+
+## Tranche 12 — Rattachement des événements au bon agent (CI à confirmer)
+
+- Audit après CI verte de `c5eecd6` : la validation du schéma impose un `step_id` mais la vérification `check_lifecycle` ne comparait pas, pour `rejected`, `retired` et `modified`, l'étape déclarée au propriétaire du manifeste.
+- Garde chirurgical ajouté dans `handoff_monitor/lineage.py` : événements du manifeste envoyé rattachés à `from_step`, ceux du manifeste reçu à `to_step`. En cas de contradiction, `UNDECLARED_REJECTION` ou `UNDECLARED_TRANSFORMATION` / `ALERT`. Le contrôle distinct des remplacements existants est conservé.
+- Deux cas adversariaux exécutables ajoutés : rejet et modification annoncés à la mauvaise étape. Matrice portée à **45 cas** : 25 violations, 4 témoins locaux, 16 abstentions. Résultats **attendus, non encore confirmés** : TP=25, FP=0, FN=0, TN=4, abstentions=16.
+- Cette correction ne prouve ni autorisation authentifiée ni transformation des contenus. Vérification GitHub Actions du dernier commit obligatoire.
