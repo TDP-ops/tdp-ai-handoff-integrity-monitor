@@ -38,3 +38,10 @@ These are **CI-asserted synthetic expectations consistent with the owner's green
 Recommended next scoped activity: confirm whether actual structure extractors and semantic/quality algorithms belong in Lot 4 as implemented features, or whether Lot 4 should strictly benchmark supported controls and mark unsupported modalities as explicit deferrals. Then assign objective acceptance criteria and a case-by-case executable matrix before expanding.
 
 Do not proceed to Lot 5 solely because 37 constructed scenarios pass. Keep GitHub and Notion gate status aligned with the decision.
+
+## Follow-up — 2026-11-25, gap-matrix inventory (CI pending)
+
+- GitHub Actions for the prior `9c17511` Exit Gate draft was **green as confirmed by the project owner**.
+- See [Lot 4 coverage and gaps](lot4-coverage-gap-matrix.md), which maps each originally planned format and scenario to actual executed evidence and missing implementation.
+- **Exit Gate remains OPEN**; the project plan still includes multimodal and more complex adversarial coverage. This inventory does not authorize a scope reduction.
+- Next targeted test stage: rejection/transformation lifecycle cases on the current strict engine; do not claim transformed content validation. This documentation commit requires its own CI check.
