@@ -96,6 +96,26 @@ def check_lineage(left, right, history=None):
     return issues
 
 
+
+def check_transform_declaration(event, contract):
+    """Check a declared transform identifier, never actual transformed bytes.
+
+    Legacy modified events without a transform_id remain UNKNOWN rather than
+    being silently accepted. A matching ID cannot authenticate policy or content.
+    """
+    if event.get("event_type") != "modified":
+        return []
+    aid = event.get("artifact_id")
+    transform_id = event.get("transform_id")
+    if transform_id is None:
+        return [finding("UNVERIFIABLE", "UNKNOWN", aid,
+                        "Legacy modification has no declared transform_id")]
+    if transform_id not in contract.get("allowed_transforms", []):
+        return [finding("UNDECLARED_TRANSFORMATION", "ALERT", aid,
+                        "Declared transform_id is not in the active contract allowlist")]
+    return []
+
+
 def check_lifecycle(sent, received, contract, policy_grants=None):
     """Validate declared lifecycle events against a separately supplied grant set.
 
@@ -113,6 +133,7 @@ def check_lifecycle(sent, received, contract, policy_grants=None):
     for event, expected_step in all_events:
         aid = event.get("artifact_id")
         typ = event.get("event_type")
+        issues.extend(check_transform_declaration(event, contract))
         if (expected_step is not None
                 and typ in ("rejected", "retired", "modified")
                 and event.get("step_id") != expected_step):
