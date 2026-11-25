@@ -16,6 +16,8 @@ VIOLATIONS = (
     ("rejection_without_reason", "UNDECLARED_REJECTION"),
     ("rejection_explicitly_unauthorized", "UNDECLARED_REJECTION"),
     ("modification_not_in_contract", "UNDECLARED_TRANSFORMATION"),
+    ("rejection_wrong_step", "UNDECLARED_REJECTION"),
+    ("modification_wrong_step", "UNDECLARED_TRANSFORMATION"),
 )
 
 ABSTENTIONS = ("declared_rejection_untrusted", "declared_modification_untrusted")
@@ -31,7 +33,8 @@ def lifecycle_case(name):
                             load("pass-received.json"))
     contract = plan["contracts"][0]
     is_modification = name in (
-        "modification_not_in_contract", "declared_modification_untrusted")
+        "modification_not_in_contract", "modification_wrong_step",
+        "declared_modification_untrusted")
     event_type = "modified" if is_modification else "rejected"
     if name != "rejection_not_in_contract" and name != "modification_not_in_contract":
         contract["allowed_lifecycle_events"].append(event_type)
@@ -45,6 +48,8 @@ def lifecycle_case(name):
     }
     if not is_modification and name != "rejection_without_reason":
         event["reason"] = "Synthetic rejection scenario"
+    if name in ("rejection_wrong_step", "modification_wrong_step"):
+        event["step_id"] = "A"
     received["lifecycle_events"] = [event]
     return plan, sent, received
 
