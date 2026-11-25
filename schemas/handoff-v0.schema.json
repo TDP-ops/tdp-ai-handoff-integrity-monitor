@@ -716,6 +716,9 @@
         "artifact_version_id": {
           "$ref": "#/$defs/identifier"
         },
+        "transform_id": {
+          "$ref": "#/$defs/identifier"
+        },
         "event_type": {
           "enum": [
             "created",
