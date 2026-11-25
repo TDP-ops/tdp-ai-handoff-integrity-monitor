@@ -45,3 +45,9 @@ Do not proceed to Lot 5 solely because 37 constructed scenarios pass. Keep GitHu
 - See [Lot 4 coverage and gaps](lot4-coverage-gap-matrix.md), which maps each originally planned format and scenario to actual executed evidence and missing implementation.
 - **Exit Gate remains OPEN**; the project plan still includes multimodal and more complex adversarial coverage. This inventory does not authorize a scope reduction.
 - Next targeted test stage: rejection/transformation lifecycle cases on the current strict engine; do not claim transformed content validation. This documentation commit requires its own CI check.
+
+## Follow-up — 2026-11-25: transformation allowlist enforcement gap
+
+- The latest prior tranche `65a080a` CI was confirmed green by the owner.
+- The audit documented in [Transformation authorization gap](lot4-transform-policy-gap.md) confirms `allowed_transforms` is required by the schema but not enforced by the V0 runtime, because existing lifecycle events do not identify a transformation operation. Version transition tests do not establish compliance with this allowlist.
+- **Exit Gate remains OPEN.** A backward-compatible schema/API design decision and executable mismatch/abstention cases are prerequisites before claiming supported transformation authorization; no engine code was changed in this audit.
