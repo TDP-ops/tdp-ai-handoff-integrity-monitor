@@ -20,6 +20,7 @@ from test_lot4_structural_abstentions import STRUCTURAL_CASES, structural_case
 from test_lot4_quality_abstentions import QUALITY_CASES, quality_case
 from test_lot4_adversarial_lifecycle import VIOLATIONS as LIFECYCLE_VIOLATIONS, ABSTENTIONS as LIFECYCLE_ABSTENTIONS, compare_lifecycle
 from test_lot4_policy_grants import GRANT_VIOLATIONS, GRANT_ABSTENTIONS, compare_grant
+from test_lot4_version_transitions import VIOLATIONS as VERSION_VIOLATIONS, ABSTENTIONS as VERSION_ABSTENTIONS, compare_version
 from handoff_monitor import compare_handoff_validated, compare_journey_validated
 
 
@@ -96,11 +97,18 @@ def run():
         rows.append({"case": name, "truth": "evidence_unavailable",
                      "verdict": compare_grant(name)["verdict"]})
 
+    for name, _expected_code in VERSION_VIOLATIONS:
+        rows.append({"case": name, "truth": "violation",
+                     "verdict": compare_version(name)["verdict"]})
+    for name in VERSION_ABSTENTIONS:
+        rows.append({"case": name, "truth": "evidence_unavailable",
+                     "verdict": compare_version(name)["verdict"]})
+
     report = score_rows(rows)
     print(json.dumps(report, indent=2, sort_keys=True))
-    expected = {"TP": 29, "FP": 0, "FN": 0, "TN": 4,
+    expected = {"TP": 32, "FP": 0, "FN": 0, "TN": 4,
                 "unknown_violation": 0, "unknown_clean": 0,
-                "abstentions_unscored": 19}
+                "abstentions_unscored": 20}
     assert report["counts"] == expected, report["counts"]
     return 0
 
