@@ -105,10 +105,20 @@ def check_lifecycle(sent, received, contract, policy_grants=None):
     """
     issues = []
     allowed = set(contract.get("allowed_lifecycle_events", []))
-    all_events = sent.get("lifecycle_events", []) + received.get("lifecycle_events", [])
-    for event in all_events:
+    # Lifecycle claims must belong to the manifest's own boundary step.
+    all_events = (
+        [(event, sent.get("from_step")) for event in sent.get("lifecycle_events", [])]
+        + [(event, received.get("to_step")) for event in received.get("lifecycle_events", [])]
+    )
+    for event, expected_step in all_events:
         aid = event.get("artifact_id")
         typ = event.get("event_type")
+        if (typ in ("rejected", "retired", "modified")
+                and event.get("step_id") != expected_step):
+            code = ("UNDECLARED_REJECTION" if typ in ("rejected", "retired")
+                    else "UNDECLARED_TRANSFORMATION")
+            issues.append(finding(code, "ALERT", aid,
+                                  "Lifecycle event step differs from manifest owner"))
         if typ not in allowed:
             issues.append(finding("UNDECLARED_REJECTION" if typ in ("rejected","retired") else "UNDECLARED_TRANSFORMATION",
                                   "ALERT", aid, "Event not in active contract"))
