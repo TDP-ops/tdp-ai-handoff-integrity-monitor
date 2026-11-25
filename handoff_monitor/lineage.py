@@ -113,7 +113,8 @@ def check_lifecycle(sent, received, contract, policy_grants=None):
     for event, expected_step in all_events:
         aid = event.get("artifact_id")
         typ = event.get("event_type")
-        if (typ in ("rejected", "retired", "modified")
+        if (expected_step is not None
+                and typ in ("rejected", "retired", "modified")
                 and event.get("step_id") != expected_step):
             code = ("UNDECLARED_REJECTION" if typ in ("rejected", "retired")
                     else "UNDECLARED_TRANSFORMATION")
