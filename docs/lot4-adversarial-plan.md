@@ -121,3 +121,11 @@ Baseline tranche 1 `bed2c6c` CI was confirmed green by the project owner. Tranch
 - Garde chirurgical ajouté dans `handoff_monitor/lineage.py` : événements du manifeste envoyé rattachés à `from_step`, ceux du manifeste reçu à `to_step`. En cas de contradiction, `UNDECLARED_REJECTION` ou `UNDECLARED_TRANSFORMATION` / `ALERT`. Le contrôle distinct des remplacements existants est conservé.
 - Deux cas adversariaux exécutables ajoutés : rejet et modification annoncés à la mauvaise étape. Matrice portée à **45 cas** : 25 violations, 4 témoins locaux, 16 abstentions. Résultats **attendus, non encore confirmés** : TP=25, FP=0, FN=0, TN=4, abstentions=16.
 - Cette correction ne prouve ni autorisation authentifiée ni transformation des contenus. Vérification GitHub Actions du dernier commit obligatoire.
+
+## Tranche 13 — Compléments de rattachement émetteur et retrait (CI à confirmer)
+
+- Après les deux CI vertes de correction de tranche 12 (`6328e49` et `80ff859`), extension des tests `tests/test_lot4_adversarial_lifecycle.py` aux événements `rejected` déclarés du côté **sent** (étape émettrice) et `retired` du côté **received**.
+- Deux violations à détecter : rejet émetteur annoncé à l'étape réceptrice et retrait récepteur annoncé à l'étape émettrice ; verdict `ALERT` / `UNDECLARED_REJECTION`.
+- Un témoin envoyé à la bonne étape, mais dont la politique demeure non authentifiée, doit rester `UNKNOWN`. La validation stricte s'applique ; les appels internes historiques sans étape de frontière conservent leur comportement.
+- Matrice portée à **48 scénarios synthétiques** : **27 violations**, **4 contrôles locaux propres**, **17 abstentions**. **Valeurs attendues avant la CI du SHA final :** TP=27, FP=0, FN=0, TN=4, abstentions=17.
+- Ces tests ne prouvent pas la suppression physique d'un artefact, son contenu ou une autorisation indépendante. Le lot 4 et son Exit Gate restent ouverts.
