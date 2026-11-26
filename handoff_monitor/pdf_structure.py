@@ -89,8 +89,8 @@ def _objects(raw, *, plain_streams=False):
             # Minimal byte-exact streams: no filters, no indirect Length,
             # no support for keyword-like tokens inside raw stream bytes.
             match_stream = re.fullmatch(
-                rb"(<<[^<>]*?/Length\\s+(\\d+)\\s*>>)"
-                rb"\\s*stream\\r?\\n(.*?)\\r?\\nendstream",
+                rb"(<<[^<>]*?/Length\s+(\d+)\s*>>)"
+                rb"\s*stream\r?\n(.*?)\r?\nendstream",
                 body, re.DOTALL)
             if not match_stream or b"/Filter" in match_stream.group(1):
                 raise ValueError("Unsupported PDF content stream")
@@ -158,11 +158,11 @@ def pdf_page_hash(path, page_index):
     """
     raw = Path(path).read_bytes()
     if (len(raw) > MAX_PDF or not raw.startswith(b"%PDF-1.")
-            or b"\\x00" in raw):
+            or b"\x00" in raw):
         raise ValueError("Unsupported PDF syntax")
     objects, root_ref = _objects(raw, plain_streams=True)
     catalog = objects.get(root_ref)
-    if not isinstance(catalog, bytes) or not re.search(rb"/Type\\s*/Catalog\\b", catalog):
+    if not isinstance(catalog, bytes) or not re.search(rb"/Type\s*/Catalog\b", catalog):
         raise ValueError("Unsupported PDF catalog")
     pages_root = _one_reference(catalog, b"Pages")
     collected = []
@@ -177,13 +177,13 @@ def pdf_page_hash(path, page_index):
             raise ValueError("Stream cannot be a page tree node")
         if parent is not None and _one_reference(node, b"Parent") != parent:
             raise ValueError("Invalid PDF parent reference")
-        if re.search(rb"/Type\\s*/Page\\b", node):
+        if re.search(rb"/Type\s*/Page\b", node):
             collected.append(node)
             return 1
-        if not re.search(rb"/Type\\s*/Pages\\b", node):
+        if not re.search(rb"/Type\s*/Pages\b", node):
             raise ValueError("Non-page node in tree")
-        count = re.search(rb"/Count\\s+(\\d+)\\b", node)
-        kids = re.search(rb"/Kids\\s*\\[([^\\]]*)\\]", node)
+        count = re.search(rb"/Count\s+(\d+)\b", node)
+        kids = re.search(rb"/Kids\s*\[([^\]]*)\]", node)
         if count is None or kids is None:
             raise ValueError("Incomplete page tree")
         children = REF_RE.findall(kids.group(1))
@@ -203,8 +203,8 @@ def pdf_page_hash(path, page_index):
                                 b"/Annots", b"/Group", b"/UserUnit")):
         raise ValueError("Unsupported page dependencies")
     box = re.findall(
-        rb"/MediaBox\\s*\\[\\s*([+-]?\\d+)\\s+([+-]?\\d+)\\s+"
-        rb"([+-]?\\d+)\\s+([+-]?\\d+)\\s*\\]", page)
+        rb"/MediaBox\s*\[\s*([+-]?\d+)\s+([+-]?\d+)\s+"
+        rb"([+-]?\d+)\s+([+-]?\d+)\s*\]", page)
     if len(box) != 1:
         raise ValueError("Exactly one direct integer MediaBox required")
     stream_ref = _one_reference(page, b"Contents")
@@ -213,6 +213,6 @@ def pdf_page_hash(path, page_index):
         raise ValueError("Page has no supported raw content stream")
     # No assumption that this fingerprint represents rendered pixels.
     geometry = b" ".join(box[0])
-    representation = (b"TDP-PDF-PAGE-RAW-V1\\n" + geometry +
-                      b"\\x00" + stream_obj[1])
+    representation = (b"TDP-PDF-PAGE-RAW-V1\n" + geometry +
+                      b"\x00" + stream_obj[1])
     return hashlib.sha256(representation).hexdigest()
