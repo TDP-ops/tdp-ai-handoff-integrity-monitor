@@ -18,7 +18,7 @@ The original project plan calls for adversarial tests across image, PDF, DOCX, a
 | CSV | Local UTF-8 header parsing implemented for `csv_required_columns`; valid, absent and malformed header tests (latest CI pending) | Does not establish row completeness, broad dialect support or remote custody | Confirm latest CI and extend supported formats |
 | XLSX | Required sheets declaration causes UNKNOWN | Workbook/sheet/column parsing | Valid XLSX fixtures, deterministic parsing, edge cases |
 | DB schema | Foreign-key requirement declaration causes UNKNOWN | Schema/catalog comparison and dialect differences | Canonical schema snapshots, supported dialect definition, positive/negative cases |
-| Audio | Duration/sample-rate declarations cause UNKNOWN | Audio decoding, duration/rate determination | Valid synthetic audio fixtures and decoder implementation |
+| Audio | PCM WAV duration and sample-rate checks implemented on local bytes with threshold, truncation and missing-path tests (latest CI pending) | No compressed audio decoder, transcript or intelligibility scoring; no authenticated remote custody | Confirm CI and expand to remaining modalities |
 | JSON / YAML / text | JSON required-pointer check now runs against local valid, missing, malformed and absent-byte fixtures (latest CI pending); YAML and text extractors remain unavailable | No JSON value semantics, YAML parser or text-segment hashing; no authenticated custody | Verify JSON CI; implement remaining declared checks independently |
 
 ## Evidence accounting
@@ -44,3 +44,7 @@ The local CSV extractor checks required header names in caller-supplied sender a
 ## Implementation update — JSON Pointer (latest CI pending)
 
 The `json_required_pointer` local checker now reads real JSON data with strict UTF-8 parsing, duplicate-key rejection, bounded 8 MiB input, JSON Pointer unescaping and canonical array-index handling. Six new synthetic execution cases are included. The expected matrix is **74 cases** (37 known violations, 7 clean local controls, 30 abstentions), pending CI for the final SHA. Actual content semantics, YAML/text checks, remote custody and other type-specific extractors remain unverified.
+
+## Implementation update — PCM WAV measurements (latest CI pending)
+
+Real locally generated uncompressed PCM WAV fixtures now exercise duration and sample-rate thresholds, incomplete samples and missing recipient observations. No audio decoding beyond PCM WAV or speech-quality assertion is claimed. Expected synthetic matrix: **79 cases** (39 violations, 8 clean local observations, 32 abstentions); these values are not confirmed until the newest GitHub Actions SHA is green.
