@@ -69,3 +69,9 @@ The previous **63 synthetic cases** were confirmed green by the owner. The new e
 `json_required_pointer` is now evaluated against actually opened local JSON bytes with the standard library, RFC 6901 pointer resolution, duplicate-key rejection and an 8 MiB input bound. Six strict-API fixture scenarios cover valid pointers, escaping, absence, malformed/invalid encodings and missing receiver evidence. See [typed checks](typed-checks-v0.md).
 
 The preceding **68-case** CI was confirmed green by the owner. Expected expanded suite: **74 synthetic cases** (37 known violations, 7 clean local examples, 30 unscored abstentions); results **not confirmed for the latest SHA**. Actual JSON value semantics, multimedia parsing, remote custody, and broader original Lot 4 acceptance requirements remain unverified. Exit Gate stays OPEN.
+
+## Implementation update — bounded PCM WAV observations (CI pending)
+
+Following owner-confirmed green CI for `c4a49a3` (JSON), the V0 engine now observes uncompressed PCM WAV **duration** and **sample rate** on locally provided sender and receiver file paths. Actual synthetic WAV test files check compliant values, threshold violations, truncated frames, and unavailable receiver evidence. The parser is stdlib-only and bounded at 16 MiB; non-PCM/unsupported files remain `UNKNOWN`.
+
+The new expected suite contains **79 synthetic cases** (39 violations, 8 clean local cases, 32 abstentions), **pending the CI of the latest commit**. This does not measure intelligibility, transcription or authenticated custody. Other typed structure/quality extractors remain incomplete, so **Lot 4 Exit Gate stays OPEN**.
