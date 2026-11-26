@@ -30,6 +30,7 @@ from test_lot4_xlsx_sheets import XLSX_CASES, run_xlsx_case
 from test_lot4_xlsx_columns import COLUMN_CASES, run_xlsx_column_case
 from test_lot4_docx_paragraphs import DOCX_CASES, run_docx_case
 from test_lot4_pdf_pages import PDF_CASES, run_pdf_case
+from test_lot4_pdf_page_hash import PDF_HASH_CASES, run_pdf_hash_case
 from handoff_monitor import compare_handoff_validated, compare_journey_validated
 
 
@@ -152,11 +153,15 @@ def run():
         rows.append({"case": name, "truth": truth,
                      "verdict": run_pdf_case(name)["verdict"]})
 
+    for name, truth, _expected in PDF_HASH_CASES:
+        rows.append({"case": name, "truth": truth,
+                     "verdict": run_pdf_hash_case(name)["verdict"]})
+
     report = score_rows(rows)
     print(json.dumps(report, indent=2, sort_keys=True))
-    expected = {"TP": 46, "FP": 0, "FN": 0, "TN": 14,
+    expected = {"TP": 48, "FP": 0, "FN": 0, "TN": 15,
                 "unknown_violation": 0, "unknown_clean": 0,
-                "abstentions_unscored": 46}
+                "abstentions_unscored": 49}
     assert report["counts"] == expected, report["counts"]
     return 0
 
