@@ -1,6 +1,6 @@
 # Typed integrity assertions — V0 / lot 1
 
-**Status:** V0 declarations with selected local runtime checks (exact bytes, CSV required columns, JSON required pointers, PCM WAV duration/sample rate, PNG RGB/RGBA dimensions and XLSX sheet names); other typed extractors, quality algorithms and independent receiver evidence remain unavailable.
+**Status:** V0 declarations with selected local runtime checks (exact bytes; CSV, JSON, WAV, PNG, XLSX, DOCX, bounded PDF and SQLite structure; reference-backed RGB PNG blur metric). SSIM, unsupported file variants and independently authenticated receiver custody remain unavailable.
 
 The canonical file is `schemas/handoff-v0.schema.json`. The `artifact.checks` object has three optional components:
 - `exact_bytes: true`: exact SHA-256 comparison of independently observed sender and receiver bytes.
@@ -92,7 +92,7 @@ A missing table/column, a mismatched declared type, or an absent foreign-key rel
 | Artifact kind | check_type | Required parameters | Limitation |
 |---|---|---|---|
 | image | `image_min_ssim` | `reference_artifact_version_id`, `minimum_ssim` (0–1), `algorithm_id: "ssim-skimage-v1"` | SSIM requires exact image alignment, reference bytes and a defined image decoding pipeline; algorithm identifier is a **reserved specification label**, not an implemented algorithm |
-| image | `image_max_blur_score_ratio` | `reference_artifact_version_id`, `maximum_ratio` (>0), `algorithm_id: "variance-of-laplacian-v1"` | Relative focus metric is sensitive to scaling/texture; algorithm identifier is **reserved**, and the score convention must be defined before runtime implementation |
+| image | `image_max_blur_score_ratio` | `reference_artifact_version_id`, `maximum_ratio` (>0), `algorithm_id: "variance-of-laplacian-v1"` | Implemented for aligned RGB8 PNG only with explicit local reference evidence; not a proof of image semantics or remote custody |
 | audio | `audio_min_sample_rate_hz` | `sample_rate_hz` | Sample rate alone does not prove intelligibility, transcription completeness or audio quality |
 
 **No thresholds are recommended by default**; thresholds must originate from an explicit versioned policy and an appropriate benchmark for the use case. Only the bounded RGB PNG Laplacian blur ratio is now operational; **SSIM remains unimplemented** and may not produce `PASS`.
