@@ -1,5 +1,24 @@
 # Lot 4 — Adversarial evaluation Exit Gate review
 
+## Audit consolidé du 26 novembre 2026 — décision : EXIT GATE OPEN
+
+**Source d'exécution vérifiée :** GitHub Actions, SHA `30009d201f51694ef3eaf1d802a1ffb365fce4a3`, job `140133732030`, [run #45885102178](https://github.com/TDP-ops/tdp-ai-handoff-integrity-monitor/actions/runs/45885102178) : **SUCCESS** (unittest, coverage et scoring). Logs consultés : **235 tests**, **133 scénarios synthétiques**, **55 TP / 0 FP / 0 FN / 19 TN / 59 abstentions non scorées**. Couverture en lignes mesurée sur les quatre modules centraux : core 91,4 %, journey 91,0 %, lineage 90,5 %, validation 98,5 %. Ces chiffres sont circonscrits au jeu synthétique, pas des taux de détection en production ni une preuve de couverture des extracteurs.
+
+| Exigence du plan V0 | Verdict d'audit | Preuves / limitation |
+| --- | --- | --- |
+| Contrats, identités, versions, historique, remplacements, lifecycle, allowlist de transformation | **COUVERT sur cas sélectionnés** | Exécution par API stricte et tests adversariaux ; les opérations réelles de transformation et les autorisations indépendantes ne sont pas prouvées |
+| Intégrité locale SHA-256, `ALERT` supérieur à `UNKNOWN`, absence de faux `PASS` observé | **COUVERT sur cas sélectionnés** | Fichiers locaux réels et tests de précédence ; pas de réception authentifiée |
+| Contrôles réels image, PDF, DOCX, audio, CSV, XLSX, SQLite, JSON et SSIM/flou | **COUVERT SUR SOUS-FORMATS** | PNG RGB8, PDF classic-xref/restreint, DOCX simple, WAV PCM, SQLite3, etc. Les variantes non prises en charge donnent `UNKNOWN` ; aucune garantie sémantique générale |
+| `text_required_segment_sha256` du contrat V0 | **BLOQUANT : NON IMPLÉMENTÉ** | Présent dans le JSON Schema ; absent de `handoff_monitor/structure.py` et non représenté par des scénarios de détection sur vrais fichiers texte |
+| Forks/joins, ordonnancement/retry/concurrence, filiation de parcours non linéaires | **BLOQUANT : NON DÉMONTRÉ** | `compare_journey_validated` prend en charge une chaîne linéaire ; aucun modèle graphe et matrice de vérité terrain correspondants |
+| Reproductibilité du rapport et dénominateurs | **COUVERT SUR LE CORPUS COURANT** | Logs bruts du job consultés, 133 scénarios observés ; les 59 `UNKNOWN` ne sont ni TP ni TN |
+| Authentification du récepteur, provenance des références et grants | **REPORT EXPLICITE LOT 5** | Hors périmètre de clôture du lot 4 local : ne pas transformer en faux blocage local, ni prétendre que ces preuves existent |
+| Démonstration publique Hugging Face | **LOT 6, non encore ouvert** | Dépend du lot 5 selon le plan actuel |
+
+**Décision vérifiée :** ne pas fermer le lot 4 et ne pas ouvrir le lot 5. Les travaux de clôture prioritaires, **sans inventer un nouveau périmètre**, sont (1) construire et tester le contrôle de segment texte déclaré V0, (2) traiter explicitement et tester les scénarios forks/joins et ordre/retries du plan original ou faire approuver une limitation V0 distincte, (3) réexécuter les scénarios et revalider l'Exit Gate sur le SHA final. Les limites des formats multimodaux doivent rester visibles, sans revendiquer une exhaustivité absente. Ne pas confondre la couverture unitaire des quatre modules centraux avec celle des parseurs.
+
+---
+
 **Decision: OPEN — review drafted; not approved.**  
 Review date: 2026-11-25  
 Last validated baseline: `10e13ec8870484a8978bf5ba0b2e1930b5f26f31`, GitHub Actions **green confirmed by the project owner**. The job's JSON output was not independently retrieved.
