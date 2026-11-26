@@ -1,6 +1,6 @@
 # Typed integrity assertions — V0 / lot 1
 
-**Status:** V0 declarations with selected local runtime checks (exact bytes, CSV required columns, JSON required pointers, PCM WAV duration and WAV sample rate); other typed extractors, quality algorithms and independent receiver evidence remain unavailable.
+**Status:** V0 declarations with selected local runtime checks (exact bytes, CSV required columns, JSON required pointers, PCM WAV duration/sample rate and PNG RGB/RGBA dimensions); other typed extractors, quality algorithms and independent receiver evidence remain unavailable.
 
 The canonical file is `schemas/handoff-v0.schema.json`. The `artifact.checks` object has three optional components:
 - `exact_bytes: true`: exact SHA-256 comparison of independently observed sender and receiver bytes.
@@ -48,6 +48,12 @@ An absent required pointer yields `MISSING_REQUIRED_RULE` / `ALERT`; invalid JSO
 The stdlib `wave` parser now evaluates `audio_min_duration_ms` and `audio_min_sample_rate_hz` on locally supplied **uncompressed PCM WAV** sender/receiver files. Duration is compared with integer frame counts (`nframes * 1000` versus `duration_ms * sample_rate`), avoiding floating-point threshold drift. The checker confirms the declared WAV frame data are readable and limits each input to 16 MiB. Short duration or insufficient sample rate yields `MISSING_REQUIRED_RULE` / `ALERT`; unsupported, truncated or missing WAV observations yield `UNVERIFIABLE` / `UNKNOWN`.
 
 The checks **do not** establish audio intelligibility, channel semantics, transcription fidelity, compressed-format support, or authenticated remote receipt. They do not implement image perceptual quality metrics.
+
+## Implemented local check — PNG image dimensions (lot 4; CI pending)
+
+`image_min_dimensions` now measures **bounded uncompressed RGB/RGBA PNG raster dimensions** from actual sender/receiver files, using only Python's standard library. It validates PNG signature, required chunks and CRCs, supported 8-bit non-interlaced RGB/RGBA layout, the zlib stream, the expected scanline length and filter tags, before comparing width and height to the declared minima. Input is capped at 8 MiB and decoded pixels at 4 million. Dimension violations produce `MISSING_REQUIRED_RULE` / `ALERT`. Corrupt, missing or unsupported files produce `UNVERIFIABLE` / `UNKNOWN`.
+
+**Scope limitation:** PNG palette, grayscale, interlaced, high-bit-depth, animated and other image formats are not supported; neither SSIM nor blur is measured. PNG scanline payload validation does not establish perceptual quality, semantic content, authentic custody or image rendering equivalence.
 
 ## Supported declarative quality checks
 
