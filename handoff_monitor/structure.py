@@ -7,6 +7,8 @@ import csv
 import json
 import wave
 import zlib
+import zipfile
+from xml.etree import ElementTree as ET
 from pathlib import Path
 
 from .core import finding
@@ -121,7 +123,8 @@ def check_structure(kind, checks, sender_path, receiver_path, artifact_id):
                                ("json", "json_required_pointer"),
                                ("audio", "audio_min_duration_ms"),
                                ("image", "image_min_dimensions"),
-                               ("xlsx", "xlsx_required_sheets")):
+                               ("xlsx", "xlsx_required_sheets"),
+                               ("xlsx", "xlsx_required_columns")):
             issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
                                   "Structure extractor not implemented"))
             continue
@@ -165,6 +168,24 @@ def check_structure(kind, checks, sender_path, receiver_path, artifact_id):
                 if missing:
                     issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
                                           role + " XLSX missing sheets: " +
+                                          ", ".join(sorted(missing))))
+            elif typ == "xlsx_required_columns":
+                from .xlsx_structure import xlsx_first_row_columns
+                try:
+                    observed = xlsx_first_row_columns(path, check["sheet_name"])
+                except (OSError, ValueError, OverflowError, MemoryError, RuntimeError,
+                        zipfile.BadZipFile, ET.ParseError):
+                    issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
+                                          role + " XLSX header unavailable or unsupported"))
+                    continue
+                if observed is None:
+                    issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
+                                          role + " XLSX required sheet missing"))
+                    continue
+                missing = set(check["column_names"]) - observed
+                if missing:
+                    issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
+                                          role + " XLSX missing columns: " +
                                           ", ".join(sorted(missing))))
             elif typ == "audio_min_duration_ms":
                 try:
