@@ -87,6 +87,12 @@ For `artifact.kind = db_schema`, the `db_required_table`, `db_required_column`, 
 
 A missing table/column, a mismatched declared type, or an absent foreign-key relationship yields `MISSING_REQUIRED_RULE` / `ALERT`. Non-SQLite formats, malformed or inaccessible evidence yield `UNVERIFIABLE` / `UNKNOWN`. This does **not** establish actual row integrity, referential integrity of stored values, semantic equivalence of SQL types, transactions, WAL consistency, or independent receiver custody. Other database dialects are not implemented.
 
+## Implemented local check — deterministic UTF-8 line segment digest (lot 4)
+
+`text_required_segment_sha256` now uses the pinned extractor `tdp-text-utf8-line-sha256-v1` for bounded (8 MiB), BOM-free UTF-8 text with LF delimiters. `segment_locator` syntax is strictly `line:N` with a canonical positive 1-based decimal line number (for example `line:2`). The extractor hashes the original UTF-8 bytes of that line without line terminator, normalization or re-encoding. Missing or altered required lines generate `MISSING_REQUIRED_RULE` / `ALERT`. Unsupported encodings, CRLF, invalid locators, mismatched extractor IDs and missing files yield `UNVERIFIABLE` / `UNKNOWN`.
+
+This is **not** semantic text-equivalence verification or a proof of independently authenticated sender/receiver custody. It explicitly detects changes to pinned line contents on supported locally observed files.
+
 ## Supported declarative quality checks
 
 | Artifact kind | check_type | Required parameters | Limitation |
