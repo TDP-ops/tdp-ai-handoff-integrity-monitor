@@ -95,7 +95,15 @@ A missing table/column, a mismatched declared type, or an absent foreign-key rel
 | image | `image_max_blur_score_ratio` | `reference_artifact_version_id`, `maximum_ratio` (>0), `algorithm_id: "variance-of-laplacian-v1"` | Relative focus metric is sensitive to scaling/texture; algorithm identifier is **reserved**, and the score convention must be defined before runtime implementation |
 | audio | `audio_min_sample_rate_hz` | `sample_rate_hz` | Sample rate alone does not prove intelligibility, transcription completeness or audio quality |
 
-**No thresholds are recommended by default**; thresholds must originate from an explicit versioned policy and an appropriate benchmark for the use case. The image metric algorithms listed here are **not yet operational**. Until implemented, tests concerning them cannot return `PASS`.
+**No thresholds are recommended by default**; thresholds must originate from an explicit versioned policy and an appropriate benchmark for the use case. Only the bounded RGB PNG Laplacian blur ratio is now operational; **SSIM remains unimplemented** and may not produce `PASS`.
+
+## Implemented local image quality — RGB PNG blur ratio (lot 4; CI pending)
+
+For `image_max_blur_score_ratio`, callers can explicitly supply `reference_files={reference_artifact_version_id: local_path}` alongside `sender_files` and `receiver_files`. The reference must match the exact declared version ID as a mapping key. The implementation reads bounded non-interlaced 8-bit RGB PNG images with standard PNG filtering and strict pixel decoding; missing, malformed, unaligned or unsupported images abstain to `UNKNOWN`. No reference is inferred from the same handoff artifact or invented from a declared hash.
+
+`variance-of-laplacian-v1` is now defined for this limited pixel convention: grayscale intensity is the integer BT.601 transformation `(299R + 587G + 114B + 500) // 1000`. For interior pixels, the Laplacian is `4 × center − top − bottom − left − right`. Focus is the **population variance** of these Laplacian responses. The degradation ratio is `reference_variance / observed_variance`; exceeding the **caller-declared** `maximum_ratio` produces `MISSING_REQUIRED_RULE` / `ALERT`. A zero observed variance with a nonzero reference variance is a violation; both variances zero give `UNKNOWN`. Image dimensions must match. No default threshold is selected.
+
+Only local observations are evaluated, not the authenticity of the reference version or independently authenticated receiver custody. The ratio is sensitive to texture and alignment and must not be presented as objective perceptual quality. `image_min_ssim` with `ssim-skimage-v1` still **abstains to UNKNOWN**: the exact pinned scikit-image algorithm, library version, pixel conversion, data range and comparison configuration are not installed or defined in the current zero-dependency pipeline. No unverified replacement metric is substituted.
 
 ## Binding, traceability and evidence
 
