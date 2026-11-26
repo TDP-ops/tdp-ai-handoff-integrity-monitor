@@ -5,6 +5,7 @@ an unencrypted /Root -> /Pages tree, and page leaves using /Type /Page.
 All other PDF layouts abstain; this is NOT a general PDF parser.
 """
 import re
+import hashlib
 from pathlib import Path
 
 MAX_PDF = 4 * 1024 * 1024
@@ -21,7 +22,7 @@ def _one_reference(data, name):
     return tuple(int(v) for v in items[0])
 
 
-def _objects(raw):
+def _objects(raw, *, plain_streams=False):
     end = re.search(rb"startxref\s+(\d+)\s+%%EOF\s*\Z", raw)
     if end is None:
         raise ValueError("PDF trailer or EOF missing")
@@ -84,7 +85,21 @@ def _objects(raw):
         if endobj < 0:
             raise ValueError("Unterminated PDF object")
         body = raw[start:endobj].strip()
-        # Restrict this subset to flat dictionaries only; no streams.
+        if plain_streams and b"stream" in body:
+            # Minimal byte-exact streams: no filters, no indirect Length,
+            # no support for keyword-like tokens inside raw stream bytes.
+            match_stream = re.fullmatch(
+                rb"(<<[^<>]*?/Length\\s+(\\d+)\\s*>>)"
+                rb"\\s*stream\\r?\\n(.*?)\\r?\\nendstream",
+                body, re.DOTALL)
+            if not match_stream or b"/Filter" in match_stream.group(1):
+                raise ValueError("Unsupported PDF content stream")
+            payload = match_stream.group(3)
+            if len(payload) != int(match_stream.group(2)):
+                raise ValueError("PDF stream length mismatch")
+            objects[ref] = (match_stream.group(1), payload)
+            continue
+        # Keep the page-count-only parser behavior unchanged.
         if (not body.startswith(b"<<") or not body.endswith(b">>")
                 or b"stream" in body or body.count(b"<<") != 1):
             raise ValueError("Unsupported PDF object structure")
@@ -128,3 +143,76 @@ def pdf_page_count(path):
         return actual
 
     return walk(pages_ref)
+
+
+PDF_PAGE_EXTRACTOR_ID = "tdp-pdf-simple-page-stream-sha256-v1"
+
+
+def pdf_page_hash(path, page_index):
+    """Hash a narrowly defined page representation, not rendered appearance.
+
+    Representation (in this order): ASCII prefix, MediaBox coordinates,
+    a zero byte, then the full raw bytes of one directly referenced,
+    unfiltered /Contents stream. Requires a direct page MediaBox and no
+    /Resources or inherited graphics state, to avoid unsound equivalence.
+    """
+    raw = Path(path).read_bytes()
+    if (len(raw) > MAX_PDF or not raw.startswith(b"%PDF-1.")
+            or b"\\x00" in raw):
+        raise ValueError("Unsupported PDF syntax")
+    objects, root_ref = _objects(raw, plain_streams=True)
+    catalog = objects.get(root_ref)
+    if not isinstance(catalog, bytes) or not re.search(rb"/Type\\s*/Catalog\\b", catalog):
+        raise ValueError("Unsupported PDF catalog")
+    pages_root = _one_reference(catalog, b"Pages")
+    collected = []
+    seen = set()
+
+    def walk(ref, parent=None):
+        if ref in seen or ref not in objects:
+            raise ValueError("Missing or repeated page tree node")
+        seen.add(ref)
+        node = objects[ref]
+        if not isinstance(node, bytes):
+            raise ValueError("Stream cannot be a page tree node")
+        if parent is not None and _one_reference(node, b"Parent") != parent:
+            raise ValueError("Invalid PDF parent reference")
+        if re.search(rb"/Type\\s*/Page\\b", node):
+            collected.append(node)
+            return 1
+        if not re.search(rb"/Type\\s*/Pages\\b", node):
+            raise ValueError("Non-page node in tree")
+        count = re.search(rb"/Count\\s+(\\d+)\\b", node)
+        kids = re.search(rb"/Kids\\s*\\[([^\\]]*)\\]", node)
+        if count is None or kids is None:
+            raise ValueError("Incomplete page tree")
+        children = REF_RE.findall(kids.group(1))
+        if not children or REF_RE.sub(b"", kids.group(1)).strip():
+            raise ValueError("Invalid page tree children")
+        actual = sum(walk(tuple(map(int, child)), ref) for child in children)
+        if actual != int(count.group(1)):
+            raise ValueError("Page tree declared count mismatch")
+        return actual
+
+    walk(pages_root)
+    if page_index >= len(collected):
+        return None
+    page = collected[page_index]
+    # Strictly forbid content-affecting dependencies we do not resolve.
+    if any(x in page for x in (b"/Resources", b"/Rotate", b"/CropBox",
+                                b"/Annots", b"/Group", b"/UserUnit")):
+        raise ValueError("Unsupported page dependencies")
+    box = re.findall(
+        rb"/MediaBox\\s*\\[\\s*([+-]?\\d+)\\s+([+-]?\\d+)\\s+"
+        rb"([+-]?\\d+)\\s+([+-]?\\d+)\\s*\\]", page)
+    if len(box) != 1:
+        raise ValueError("Exactly one direct integer MediaBox required")
+    stream_ref = _one_reference(page, b"Contents")
+    stream_obj = objects.get(stream_ref)
+    if not isinstance(stream_obj, tuple):
+        raise ValueError("Page has no supported raw content stream")
+    # No assumption that this fingerprint represents rendered pixels.
+    geometry = b" ".join(box[0])
+    representation = (b"TDP-PDF-PAGE-RAW-V1\\n" + geometry +
+                      b"\\x00" + stream_obj[1])
+    return hashlib.sha256(representation).hexdigest()
