@@ -192,8 +192,8 @@ def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=N
         if ac != bc:
             issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", aid,
                                   "Artifact check declarations differ across handoff"))
-        # Structure checks use local sender/receiver bytes. Only CSV required
-        # columns, JSON Pointers and PCM WAV duration are implemented.
+        # Structure checks inspect supported local sender/receiver formats.
+        # Unsupported typed extractors must abstain instead of claiming PASS.
         if ac.get("required_structure") or bc.get("required_structure"):
             from .structure import check_structure
             declared = ac.get("required_structure", [])
