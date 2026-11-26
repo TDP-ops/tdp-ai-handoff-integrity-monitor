@@ -1,7 +1,7 @@
 """Real local RGB PNG image blur metrics using explicitly provided references.
 
 The score is a bounded local observation, not proof of remote custody.
-SSIM still abstains until its required skimage algorithm is implemented.
+SSIM must abstain when its versioned reference image is missing.
 """
 import hashlib
 import tempfile
@@ -22,7 +22,7 @@ BLUR_CASES = (
     ("blur_dimensions_differ", "evidence_unavailable", "UNKNOWN"),
     ("blur_both_flat", "evidence_unavailable", "UNKNOWN"),
     ("blur_invalid_receiver", "evidence_unavailable", "UNKNOWN"),
-    ("ssim_algorithm_unimplemented", "evidence_unavailable", "UNKNOWN"),
+    ("ssim_reference_missing", "evidence_unavailable", "UNKNOWN"),
 )
 
 
@@ -65,7 +65,7 @@ def run_blur_case(name):
             "maximum_ratio": 1.25,
             "algorithm_id": "variance-of-laplacian-v1",
         }
-        if name == "ssim_algorithm_unimplemented":
+        if name == "ssim_reference_missing":
             quality = {
                 "check_type": "image_min_ssim",
                 "reference_artifact_version_id": "ART-001-V1",
@@ -80,7 +80,7 @@ def run_blur_case(name):
                 "quality_invariants": [quality],
             }
             artifact["content_sha256"] = hashlib.sha256(candidate).hexdigest()
-        ref_paths = {} if name == "blur_reference_missing" else {
+        ref_paths = {} if name in ("blur_reference_missing", "ssim_reference_missing") else {
             "ART-001-V1": reference}
         return compare_handoff_validated(
             plan, sent, received,
