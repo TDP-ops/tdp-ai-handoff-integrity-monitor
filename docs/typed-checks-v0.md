@@ -55,11 +55,13 @@ The checks **do not** establish audio intelligibility, channel semantics, transc
 
 **Scope limitation:** PNG palette, grayscale, interlaced, high-bit-depth, animated and other image formats are not supported; neither SSIM nor blur is measured. PNG scanline payload validation does not establish perceptual quality, semantic content, authentic custody or image rendering equivalence.
 
-## Implemented local check — XLSX required sheets (lot 4; CI pending)
+## Implemented local checks — XLSX sheets and first-row columns (lot 4; latest CI pending)
 
 `xlsx_required_sheets` now reads actual local XLSX/OOXML ZIP archives with the Python standard library. The parser checks required workbook parts, ZIP CRCs, internal worksheet relationships and unique declared sheet names. It bounds the archive to 8 MiB, total decompressed entries to 24 MiB and 128 members. Missing named sheets produce `MISSING_REQUIRED_RULE` / `ALERT`; malformed, oversized, inconsistent or unavailable archives produce `UNVERIFIABLE` / `UNKNOWN`.
 
-**Not implemented:** `xlsx_required_columns`, cell/formula verification, external relationships, non-standard packages and authenticated receiver custody. This is a check of locally observed sheet names only, not spreadsheet content quality.
+The `xlsx_required_columns` assertion is now additionally evaluated on the **first row** of a named worksheet for supported literal text headers: inline strings, shared-string references and direct string values. Column IDs are validated, duplicated/blank labels rejected, and formula-derived headers yield `UNKNOWN`. A missing required sheet or column yields `ALERT`; malformed/unsupported XML and missing observations yield `UNKNOWN`. Tests include both inline and shared-string fixtures. **CI for this extension is pending.**
+
+**Not implemented:** spreadsheet data-row validation, formula evaluation, rich/typed cell semantics, external relationships, non-standard packages and authenticated receiver custody. These checks establish locally observed sheet names and first-row text labels only, not spreadsheet completeness or quality.
 
 ## Supported declarative quality checks
 
