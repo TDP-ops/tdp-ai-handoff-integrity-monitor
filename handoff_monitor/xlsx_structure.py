@@ -17,7 +17,7 @@ MAX_UNCOMPRESSED = 24 * 1024 * 1024
 MAX_MEMBERS = 128
 
 
-def xlsx_sheet_names(path):
+def xlsx_sheet_names(path, *, include_parts=False):
     if Path(path).stat().st_size > MAX_FILE:
         raise ValueError("XLSX exceeds bounded file size")
     try:
@@ -60,6 +60,7 @@ def xlsx_sheet_names(path):
             if sheets_node is None or not len(sheets_node):
                 raise ValueError("Workbook has no sheets")
             found = set()
+            parts = {}
             for sheet in sheets_node:
                 if sheet.tag != SS + "sheet":
                     raise ValueError("Unsupported sheets entry")
@@ -78,6 +79,89 @@ def xlsx_sheet_names(path):
                 if member not in names or not member.startswith("xl/"):
                     raise ValueError("Worksheet part missing")
                 found.add(title)
-            return found
+                parts[title] = member
+            return parts if include_parts else found
     except (zipfile.BadZipFile, ET.ParseError, EOFError) as error:
         raise ValueError("Unreadable XLSX archive or XML") from error
+
+
+def _column_number(reference):
+    letters = reference.rstrip("0123456789")
+    row = reference[len(letters):]
+    if not letters or row != "1" or not letters.isascii() or not letters.isalpha() or not letters.isupper():
+        raise ValueError("Unsupported XLSX header cell reference")
+    number = 0
+    for char in letters:
+        number = number * 26 + ord(char) - 64
+        if number > 16384:
+            raise ValueError("XLSX column index out of bounds")
+    return number
+
+
+def xlsx_first_row_columns(path, sheet_name):
+    """Read first-row text headers, not arbitrary cells or computed formulas.
+
+    Supports inline strings, shared strings, and direct string cells. Anything
+    ambiguous is UNKNOWN to the calling engine, not a fabricated successful check.
+    """
+    parts = xlsx_sheet_names(path, include_parts=True)
+    if sheet_name not in parts:
+        return None
+    with zipfile.ZipFile(path, "r") as archive:
+        shared = []
+        if "xl/sharedStrings.xml" in archive.namelist():
+            root = ET.fromstring(archive.read("xl/sharedStrings.xml"))
+            if root.tag != SS + "sst":
+                raise ValueError("Unexpected shared string namespace")
+            for item in root:
+                if item.tag != SS + "si":
+                    raise ValueError("Unknown shared string child")
+                shared.append("".join(t.text or "" for t in item.iter(SS + "t")))
+        root = ET.fromstring(archive.read(parts[sheet_name]))
+        if root.tag != SS + "worksheet":
+            raise ValueError("Unexpected worksheet namespace")
+        data = root.find(SS + "sheetData")
+        if data is None:
+            raise ValueError("Missing worksheet data")
+        header = next((r for r in data if r.tag == SS + "row" and r.get("r") == "1"), None)
+        if header is None:
+            raise ValueError("No supported header row")
+        used = set()
+        observed = set()
+        for cell in header:
+            if cell.tag != SS + "c":
+                raise ValueError("Unsupported header row element")
+            reference = cell.get("r", "")
+            column = _column_number(reference)
+            if column in used:
+                raise ValueError("Duplicate header cell column")
+            used.add(column)
+            if cell.find(SS + "f") is not None:
+                raise ValueError("Formula header is not an observed label")
+            kind = cell.get("t")
+            if kind == "inlineStr":
+                inline = cell.find(SS + "is")
+                if inline is None:
+                    raise ValueError("Missing inline string")
+                value = "".join(t.text or "" for t in inline.iter(SS + "t"))
+            elif kind == "s":
+                element = cell.find(SS + "v")
+                if element is None or element.text is None or not element.text.isascii() or not element.text.isdecimal():
+                    raise ValueError("Invalid shared string reference")
+                index = int(element.text)
+                if index >= len(shared):
+                    raise ValueError("Shared string reference out of range")
+                value = shared[index]
+            elif kind == "str":
+                element = cell.find(SS + "v")
+                if element is None:
+                    raise ValueError("Missing string cell content")
+                value = element.text or ""
+            else:
+                raise ValueError("Unsupported header cell type")
+            if not value or value in observed:
+                raise ValueError("Blank or duplicate header label")
+            observed.add(value)
+        if not observed:
+            raise ValueError("No text headers")
+        return observed
