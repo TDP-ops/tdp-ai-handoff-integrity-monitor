@@ -125,7 +125,8 @@ def check_structure(kind, checks, sender_path, receiver_path, artifact_id):
                                ("image", "image_min_dimensions"),
                                ("xlsx", "xlsx_required_sheets"),
                                ("xlsx", "xlsx_required_columns"),
-                               ("docx", "docx_required_paragraph_sha256")):
+                               ("docx", "docx_required_paragraph_sha256"),
+                               ("pdf", "pdf_min_pages")):
             issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
                                   "Structure extractor not implemented"))
             continue
@@ -204,6 +205,17 @@ def check_structure(kind, checks, sender_path, receiver_path, artifact_id):
                 if observed != check["extracted_paragraph_sha256"]:
                     issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
                                           role + " required DOCX paragraph missing or changed"))
+            elif typ == "pdf_min_pages":
+                from .pdf_structure import pdf_page_count
+                try:
+                    pages = pdf_page_count(path)
+                except (OSError, ValueError, OverflowError, MemoryError, RecursionError):
+                    issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
+                                          role + " PDF page tree unreadable or unsupported"))
+                    continue
+                if pages < check["min_pages"]:
+                    issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
+                                          role + " PDF page count below minimum"))
             elif typ == "audio_min_duration_ms":
                 try:
                     frames, rate = _wav_metadata(path)
