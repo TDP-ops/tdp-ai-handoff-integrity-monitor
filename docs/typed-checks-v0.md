@@ -81,6 +81,12 @@ This is deliberately **not** a general PDF parser, page renderer, extractable pa
 
 **Trust limitation:** This does not prove visual or semantic equivalence, resolve inherited graphics state, validate page resources, or authenticate recipient custody. It must never be described as a general PDF page text or image hash. Other modern PDF layouts are unsupported.
 
+## Implemented local checks — SQLite schema (lot 4; CI pending)
+
+For `artifact.kind = db_schema`, the `db_required_table`, `db_required_column`, and `db_required_foreign_key` checks inspect actual local **SQLite 3 database files** through the Python standard-library `sqlite3` driver. The connection uses `mode=ro&immutable=1` and `PRAGMA query_only=ON`. The implementation validates the SQLite header, bounds the input at 8 MiB, runs `PRAGMA quick_check`, and inspects table definitions, declared column types and foreign-key relations. Identifiers are safely quoted; no user-supplied SQL is executed.
+
+A missing table/column, a mismatched declared type, or an absent foreign-key relationship yields `MISSING_REQUIRED_RULE` / `ALERT`. Non-SQLite formats, malformed or inaccessible evidence yield `UNVERIFIABLE` / `UNKNOWN`. This does **not** establish actual row integrity, referential integrity of stored values, semantic equivalence of SQL types, transactions, WAL consistency, or independent receiver custody. Other database dialects are not implemented.
+
 ## Supported declarative quality checks
 
 | Artifact kind | check_type | Required parameters | Limitation |
