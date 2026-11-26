@@ -1,3 +1,7 @@
+## Lot 4 DAG update — 2026-11-26 (latest CI pending)
+
+The strict validated journey API supports optional `run_plan.journey_mode="dag"` while defaulting to the existing `linear` behavior. Contract edges define a DAG; each edge requires one distinct sender/receiver pair. Synthetic cases exercise unordered observation, missing fork edge, replay, repeated edge/retry, conflict at a join, lost artifact at a fork and cycle detection. **Repeated attempts are rejected as ambiguous**, not reconciled as authorized retries. Expected extended suite: **147** synthetic cases (63 known violations, 20 clean local observations, 64 abstentions). The CI for the final SHA remains to be verified. Authenticated evidence is still a separate Lot 5 responsibility.
+
 # Lot 4 — Coverage and remaining evidence matrix
 
 ## Update — V0 text segment hashes (latest CI pending)
@@ -23,7 +27,7 @@ The original project plan calls for adversarial tests across image, PDF, DOCX, a
 | --- | --- | --- | --- |
 | Local integrity (any byte stream) | Matching bytes, mismatching bytes, empty/binary/multi-read samples | Independent receiver custody | Keep the local PASS boundary explicit; authenticated custody belongs to lot 5 |
 | Contract, rules, event identity, versions | Selected adversarial strict-API tests | Exhaustive state space; semantic equivalence of content | Add narrowly scoped rejection/transformation and version-transition tests with explicit ground truth |
-| Linear handoff A→B→C | Missing hop, replay, dropped artifact and coherent-journey UNKNOWN | Forks, joins, retry ordering, concurrent/out-of-order events | Define a separate graph model and acceptance criteria before testing or claiming support |
+| Linear and opt-in DAG journeys | Linear A→B→C checks retained; DAG contract edges, fork/join continuity, cycles, replay, duplicate retries and unordered presentation have synthetic tests (latest CI pending) | Authorized retry reconciliation, independent version/policy evidence and receiver custody not established | Verify latest CI; decide documented legitimate retry semantics before Lot 4 Exit Gate |
 | Replacement | Five invalid replacement cases; valid declared replacement remains UNKNOWN | Independent authorization and source authenticity | Extend rejection/transform cases under current V0; authenticated grant checks remain lot 5 |
 | Image | Local PNG dimension, RGB8 PNG Laplacian blur, and pinned scikit-image grayscale SSIM with positive/negative/UNKNOWN fixtures (latest CI pending) | Other image formats, full-color/perceptual semantics, baseline authenticity and receiver custody | Confirm latest CI, then review scope and original Lot 4 Exit Gate |
 | PDF | Classic-xref page-tree count and pinned unfiltered raw page-stream fingerprint with real synthetic positive/negative/abstention cases (latest CI pending) | Compressed/object-stream PDFs, rendered page equivalence, semantics, inherited graphics state and authenticated custody | Verify CI; test broader layouts only with explicit extractor definition |
