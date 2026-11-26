@@ -63,6 +63,12 @@ The `xlsx_required_columns` assertion is now additionally evaluated on the **fir
 
 **Not implemented:** spreadsheet data-row validation, formula evaluation, rich/typed cell semantics, external relationships, non-standard packages and authenticated receiver custody. These checks establish locally observed sheet names and first-row text labels only, not spreadsheet completeness or quality.
 
+## Implemented local check — DOCX simple body paragraph hash (lot 4; CI pending)
+
+`docx_required_paragraph_sha256` is evaluated using the pinned extractor `tdp-docx-body-paragraph-utf8-v1`. The extractor reads a bounded DOCX ZIP package, parses `word/document.xml`, enumerates direct body paragraphs (`w:p`) in order, concatenates supported direct run text (`w:r/w:t`) without whitespace normalization, and hashes the UTF-8 bytes with SHA-256. A missing or altered declared paragraph yields `MISSING_REQUIRED_RULE` / `ALERT`. Unsupported extractor IDs, rich body structures, unreadable packages or missing evidence yield `UNVERIFIABLE` / `UNKNOWN`.
+
+This does **not** verify tables, tracked changes, text boxes, fields, styles, hyperlinks, semantic fidelity, authenticated sender/receiver observations or full DOCX document completeness. The check covers precisely the pinned extractor's simple-text paragraph representation, never arbitrary DOCX semantics.
+
 ## Supported declarative quality checks
 
 | Artifact kind | check_type | Required parameters | Limitation |
