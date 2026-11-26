@@ -99,3 +99,9 @@ Expected expanded suite: **95 synthetic cases**, including 43 known violations, 
 Following owner-confirmed green CI for `15feaa3` (XLSX columns), the engine now supports the pinned local DOCX extractor `tdp-docx-body-paragraph-utf8-v1`. It reads bounded OOXML files and hashes direct simple-text body paragraphs with deterministic UTF-8 SHA-256. A changed or missing required paragraph yields `ALERT`; unsupported rich structures, extractor identity mismatch and missing observations remain `UNKNOWN`. Six strict synthetic cases added.
 
 Expected extended benchmark: **101 cases** (45 known violations, 13 locally clean examples and 43 abstentions), **CI of latest SHA pending**. This is not a generic DOCX parser or proof of independent remote custody; PDF, DB and image quality requirements remain incomplete. **Lot 4 Exit Gate OPEN.**
+
+## Implementation update — strict classic PDF page count (CI pending)
+
+After the owner-confirmed green CI of `2bdbda3` (DOCX), the engine now supports `pdf_min_pages` on a narrow, bounded classic-xref PDF 1.x subset. It follows the actual `/Root` and `/Pages` tree and checks child/parent references and declared counts. Unsupported PDF variants abstain; a supported document below its required minimum raises `ALERT`. Five synthetic fixtures cover compliant/insufficient page trees and invalid or missing evidence.
+
+Expected score: **106 synthetic cases** (46 known violations, 14 clean local observations, 46 abstentions). **CI for the newest commit remains to be confirmed.** `pdf_required_page_sha256`, modern PDF variants, document quality metrics and authenticated custody remain unimplemented. **Lot 4 Exit Gate OPEN.**
