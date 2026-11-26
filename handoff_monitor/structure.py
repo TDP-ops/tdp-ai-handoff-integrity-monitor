@@ -114,6 +114,48 @@ def check_audio_quality(checks, sender_path, receiver_path, artifact_id):
     return issues
 
 
+
+def check_image_quality(checks, sender_path, receiver_path,
+                        reference_files, artifact_id):
+    """Evaluate only pinned local focus comparison; unsupported SSIM abstains."""
+    from fractions import Fraction
+    from .image_quality import blur_score_ratio
+
+    issues = []
+    for check in checks:
+        if check.get("check_type") != "image_max_blur_score_ratio":
+            issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
+                                  "Image metric algorithm not implemented"))
+            continue
+        if check.get("algorithm_id") != "variance-of-laplacian-v1":
+            issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
+                                  "Unknown Laplacian algorithm identifier"))
+            continue
+        reference_path = reference_files.get(check["reference_artifact_version_id"])
+        if reference_path is None:
+            issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
+                                  "Reference image for declared version unavailable"))
+            continue
+        threshold = Fraction(str(check["maximum_ratio"]))
+        for role, path in (("sender", sender_path), ("receiver", receiver_path)):
+            if path is None:
+                issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
+                                      role + " image bytes unavailable"))
+                continue
+            try:
+                rn, rd, cn, cd = blur_score_ratio(reference_path, path)
+            except (OSError, ValueError, OverflowError, MemoryError, zlib.error):
+                issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
+                                      role + " image focus metric not computable"))
+                continue
+            # Compare (reference variance / candidate variance) to exact
+            # decimal threshold without unstable float division.
+            if cn == 0 or rn * cd * threshold.denominator > (
+                    cn * rd * threshold.numerator):
+                issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
+                                      role + " image blur exceeds declared ratio"))
+    return issues
+
 def check_structure(kind, checks, sender_path, receiver_path, artifact_id):
     """Return findings only for actually evaluated structure declarations."""
     issues = []
