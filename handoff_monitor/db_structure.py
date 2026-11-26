@@ -26,7 +26,10 @@ def sqlite_schema(path):
     # URI mode=ro prevents writes; immutable ignores journal sidecars. The
     # evaluation is a local point-in-time inspection, not a proven snapshot.
     uri = file_path.as_uri() + "?mode=ro&immutable=1"
-    connection = sqlite3.connect(uri, uri=True, timeout=1)
+    try:
+        connection = sqlite3.connect(uri, uri=True, timeout=1)
+    except sqlite3.DatabaseError as error:
+        raise ValueError("Cannot open SQLite database in read-only mode") from error
     try:
         connection.execute("PRAGMA query_only=ON")
         connection.execute("PRAGMA trusted_schema=OFF")
