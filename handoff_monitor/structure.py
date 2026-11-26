@@ -124,7 +124,8 @@ def check_structure(kind, checks, sender_path, receiver_path, artifact_id):
                                ("audio", "audio_min_duration_ms"),
                                ("image", "image_min_dimensions"),
                                ("xlsx", "xlsx_required_sheets"),
-                               ("xlsx", "xlsx_required_columns")):
+                               ("xlsx", "xlsx_required_columns"),
+                               ("docx", "docx_required_paragraph_sha256")):
             issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
                                   "Structure extractor not implemented"))
             continue
@@ -187,6 +188,22 @@ def check_structure(kind, checks, sender_path, receiver_path, artifact_id):
                     issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
                                           role + " XLSX missing columns: " +
                                           ", ".join(sorted(missing))))
+            elif typ == "docx_required_paragraph_sha256":
+                from .docx_structure import DOCX_EXTRACTOR_ID, docx_paragraph_hash
+                if check["extractor_id"] != DOCX_EXTRACTOR_ID:
+                    issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
+                                          "DOCX extractor ID not supported"))
+                    continue
+                try:
+                    observed = docx_paragraph_hash(path, check["paragraph_index"])
+                except (OSError, ValueError, OverflowError, MemoryError, RuntimeError,
+                        zipfile.BadZipFile, ET.ParseError):
+                    issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
+                                          role + " DOCX paragraph cannot be extracted safely"))
+                    continue
+                if observed != check["extracted_paragraph_sha256"]:
+                    issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
+                                          role + " required DOCX paragraph missing or changed"))
             elif typ == "audio_min_duration_ms":
                 try:
                     frames, rate = _wav_metadata(path)
