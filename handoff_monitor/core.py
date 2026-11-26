@@ -74,7 +74,7 @@ def index_artifacts(items, issues, role):
     return result
 
 
-def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=None, history=None, policy_grants=None):
+def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=None, reference_files=None, history=None, policy_grants=None):
     """Return a deterministic verdict for one boundary and local file evidence.
 
     Does not authenticate caller-supplied evidence. Unsupported file extractors
@@ -84,6 +84,7 @@ def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=N
     """
     issues = []
     sender_files, receiver_files = sender_files or {}, receiver_files or {}
+    reference_files = reference_files or {}
     if sent.get("manifest_role") != "sent" or received.get("manifest_role") != "received":
         issues.append(finding("INVALID_MANIFEST", "ALERT", explanation="Manifest roles are incorrect"))
     if (not isinstance(sent.get("event_id"), str) or not sent["event_id"]
@@ -205,6 +206,12 @@ def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=N
                 issues.extend(check_audio_quality(
                     ac.get("quality_invariants", []),
                     sender_files.get(aid), receiver_files.get(aid), aid))
+            elif a.get("kind") == "image":
+                from .structure import check_image_quality
+                issues.extend(check_image_quality(
+                    ac.get("quality_invariants", []),
+                    sender_files.get(aid), receiver_files.get(aid),
+                    reference_files, aid))
             else:
                 issues.append(finding("UNVERIFIABLE", "UNKNOWN", aid,
                                       "Quality metric not implemented"))
