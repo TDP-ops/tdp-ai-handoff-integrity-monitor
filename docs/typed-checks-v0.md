@@ -69,6 +69,12 @@ The `xlsx_required_columns` assertion is now additionally evaluated on the **fir
 
 This does **not** verify tables, tracked changes, text boxes, fields, styles, hyperlinks, semantic fidelity, authenticated sender/receiver observations or full DOCX document completeness. The check covers precisely the pinned extractor's simple-text paragraph representation, never arbitrary DOCX semantics.
 
+## Implemented local check — classic PDF page-tree count (lot 4; CI pending)
+
+`pdf_min_pages` now counts leaf `/Type /Page` nodes in an actual **bounded classic-xref PDF 1.x page tree**, following the catalog and validating `/Pages`, `/Kids`, parent references and declared `/Count`. Files are limited to 4 MiB and 1,000 xref objects; object streams, xref streams, encrypted or incremental PDFs, binary/compressed page objects, and unsupported layouts abstain to `UNVERIFIABLE` / `UNKNOWN`. A readable supported page tree with fewer than the required number of leaves yields `MISSING_REQUIRED_RULE` / `ALERT`.
+
+This is deliberately **not** a general PDF parser, page renderer, extractable page-content hash or a guarantee that no middle page was removed from a larger file. `pdf_required_page_sha256` remains unsupported. Independent receiver custody is not established.
+
 ## Supported declarative quality checks
 
 | Artifact kind | check_type | Required parameters | Limitation |
