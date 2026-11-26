@@ -120,7 +120,8 @@ def check_structure(kind, checks, sender_path, receiver_path, artifact_id):
         if (kind, typ) not in (("csv", "csv_required_columns"),
                                ("json", "json_required_pointer"),
                                ("audio", "audio_min_duration_ms"),
-                               ("image", "image_min_dimensions")):
+                               ("image", "image_min_dimensions"),
+                               ("xlsx", "xlsx_required_sheets")):
             issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
                                   "Structure extractor not implemented"))
             continue
@@ -152,6 +153,19 @@ def check_structure(kind, checks, sender_path, receiver_path, artifact_id):
                 if width < check["width_px"] or height < check["height_px"]:
                     issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
                                           role + " PNG dimensions below minima"))
+            elif typ == "xlsx_required_sheets":
+                from .xlsx_structure import xlsx_sheet_names
+                try:
+                    observed = xlsx_sheet_names(path)
+                except (OSError, ValueError, OverflowError, MemoryError, RuntimeError):
+                    issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
+                                          role + " XLSX workbook unreadable or unsupported"))
+                    continue
+                missing = set(check["sheet_names"]) - observed
+                if missing:
+                    issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
+                                          role + " XLSX missing sheets: " +
+                                          ", ".join(sorted(missing))))
             elif typ == "audio_min_duration_ms":
                 try:
                     frames, rate = _wav_metadata(path)
