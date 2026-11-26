@@ -170,4 +170,7 @@ def compare_journey_validated(plan, handoffs, *, file_evidence=None):
             "run_id": plan.get("run_id") if isinstance(plan, dict) else None,
             "verdict": "ALERT", "handoffs": [], "findings": problems,
         }
+    if plan.get("journey_mode", "linear") == "dag":
+        from .dag import compare_dag_journey
+        return compare_dag_journey(plan, handoffs, file_evidence=file_evidence)
     return compare_journey(plan, handoffs, file_evidence=file_evidence)
