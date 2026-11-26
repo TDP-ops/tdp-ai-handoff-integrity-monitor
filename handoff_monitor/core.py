@@ -192,7 +192,7 @@ def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=N
             issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", aid,
                                   "Artifact check declarations differ across handoff"))
         # Structure checks use local sender/receiver bytes. Only CSV required
-        # columns and JSON Pointers are implemented; other types abstain.
+        # columns, JSON Pointers and PCM WAV duration are implemented.
         if ac.get("required_structure") or bc.get("required_structure"):
             from .structure import check_structure
             declared = ac.get("required_structure", [])
@@ -200,8 +200,14 @@ def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=N
                 a.get("kind"), declared,
                 sender_files.get(aid), receiver_files.get(aid), aid))
         if ac.get("quality_invariants") or bc.get("quality_invariants"):
-            issues.append(finding("UNVERIFIABLE", "UNKNOWN", aid,
-                                  "Quality metric not implemented"))
+            if a.get("kind") == "audio":
+                from .structure import check_audio_quality
+                issues.extend(check_audio_quality(
+                    ac.get("quality_invariants", []),
+                    sender_files.get(aid), receiver_files.get(aid), aid))
+            else:
+                issues.append(finding("UNVERIFIABLE", "UNKNOWN", aid,
+                                      "Quality metric not implemented"))
         unsupported = bool(ac.get("required_structure") or bc.get("required_structure")
                            or ac.get("quality_invariants") or bc.get("quality_invariants"))
         if ac.get("exact_bytes") is not True and bc.get("exact_bytes") is not True:
