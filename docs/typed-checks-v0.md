@@ -1,6 +1,6 @@
 # Typed integrity assertions — V0 / lot 1
 
-**Status:** V0 declarations with selected local runtime checks (exact bytes; CSV, JSON, WAV, PNG, XLSX, DOCX, bounded PDF and SQLite structure; reference-backed RGB PNG blur metric). SSIM, unsupported file variants and independently authenticated receiver custody remain unavailable.
+**Status:** V0 declarations with selected local runtime checks (exact bytes; CSV, JSON, WAV, PNG, XLSX, DOCX, bounded PDF and SQLite structure; reference-backed RGB PNG blur and pinned SSIM metrics). Unsupported file variants, missing numerical dependencies and independently authenticated receiver custody remain unavailable.
 
 The canonical file is `schemas/handoff-v0.schema.json`. The `artifact.checks` object has three optional components:
 - `exact_bytes: true`: exact SHA-256 comparison of independently observed sender and receiver bytes.
@@ -91,11 +91,11 @@ A missing table/column, a mismatched declared type, or an absent foreign-key rel
 
 | Artifact kind | check_type | Required parameters | Limitation |
 |---|---|---|---|
-| image | `image_min_ssim` | `reference_artifact_version_id`, `minimum_ssim` (0–1), `algorithm_id: "ssim-skimage-v1"` | SSIM requires exact image alignment, reference bytes and a defined image decoding pipeline; algorithm identifier is a **reserved specification label**, not an implemented algorithm |
+| image | `image_min_ssim` | `reference_artifact_version_id`, `minimum_ssim` (0–1), `algorithm_id: "ssim-skimage-v1"` | Implemented for bounded aligned RGB8 PNG with explicit reference bytes; requires exact pinned optional scikit-image/NumPy/SciPy versions |
 | image | `image_max_blur_score_ratio` | `reference_artifact_version_id`, `maximum_ratio` (>0), `algorithm_id: "variance-of-laplacian-v1"` | Implemented for aligned RGB8 PNG only with explicit local reference evidence; not a proof of image semantics or remote custody |
 | audio | `audio_min_sample_rate_hz` | `sample_rate_hz` | Sample rate alone does not prove intelligibility, transcription completeness or audio quality |
 
-**No thresholds are recommended by default**; thresholds must originate from an explicit versioned policy and an appropriate benchmark for the use case. Only the bounded RGB PNG Laplacian blur ratio is now operational; **SSIM remains unimplemented** and may not produce `PASS`.
+**No thresholds are recommended by default**; thresholds must originate from an explicit versioned policy and an appropriate benchmark for the use case. Both bounded RGB PNG Laplacian blur ratio and pinned grayscale SSIM are operational when their required local evidence and dependencies are available; otherwise their specific result remains `UNKNOWN`.
 
 ## Implemented local image quality — RGB PNG blur ratio (lot 4; CI pending)
 
@@ -104,6 +104,12 @@ For `image_max_blur_score_ratio`, callers can explicitly supply `reference_files
 `variance-of-laplacian-v1` is now defined for this limited pixel convention: grayscale intensity is the integer BT.601 transformation `(299R + 587G + 114B + 500) // 1000`. For interior pixels, the Laplacian is `4 × center − top − bottom − left − right`. Focus is the **population variance** of these Laplacian responses. The degradation ratio is `reference_variance / observed_variance`; exceeding the **caller-declared** `maximum_ratio` produces `MISSING_REQUIRED_RULE` / `ALERT`. A zero observed variance with a nonzero reference variance is a violation; both variances zero give `UNKNOWN`. Image dimensions must match. No default threshold is selected.
 
 Only local observations are evaluated, not the authenticity of the reference version or independently authenticated receiver custody. The ratio is sensitive to texture and alignment and must not be presented as objective perceptual quality. `image_min_ssim` with `ssim-skimage-v1` still **abstains to UNKNOWN**: the exact pinned scikit-image algorithm, library version, pixel conversion, data range and comparison configuration are not installed or defined in the current zero-dependency pipeline. No unverified replacement metric is substituted.
+
+## Implemented local image SSIM — pinned skimage runtime (lot 4)
+
+`image_min_ssim` now evaluates aligned bounded **RGB8 PNG** sender and receiver observations against explicit `reference_files[reference_artifact_version_id]`, using `skimage.metrics.structural_similarity` with `win_size=7`, `gaussian_weights=False`, `use_sample_covariance=True`, `data_range=255`, and `channel_axis=None`. The raster is decoded using the same deterministic BT.601 integer grayscale convention as the local blur check. Images must have matching dimensions of at least 7×7. A score below the declared `minimum_ssim` yields `MISSING_REQUIRED_RULE` / `ALERT`. Missing/misaligned/malformed images, unavailable reference or unsupported runtime version yield `UNVERIFIABLE` / `UNKNOWN`.
+
+The algorithm is version-bound to `scikit-image==0.26.0`, `numpy==2.3.5`, and `scipy==1.16.3` in optional `requirements-image-ssim.txt`. GitHub CI installs those exact versions. Missing dependencies in another deployment fail closed to UNKNOWN, not a substituted algorithm. This optional numerical runtime adds dependencies, installation size, and update responsibility; the other deterministic checks remain independent of them. No default perceptual threshold is implied. This is local **grayscale SSIM**, not full-color visual/semantic equivalence or independently authenticated reference provenance / receiver custody.
 
 ## Binding, traceability and evidence
 
