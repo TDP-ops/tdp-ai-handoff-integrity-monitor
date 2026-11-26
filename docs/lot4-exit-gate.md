@@ -81,3 +81,9 @@ The new expected suite contains **79 synthetic cases** (39 violations, 8 clean l
 After the owner-confirmed green CI for `d3e6ec3` (WAV), the engine now verifies `image_min_dimensions` for actual locally observed 8-bit RGB/RGBA, non-interlaced PNG files. The parser checks chunk CRC and decoded scanline structure before accepting dimensional measurements. Five new synthetic fixture scenarios evaluate compliant PNG, insufficient dimensions, CRC corruption, truncated raster and missing receiver evidence.
 
 The expanded suite expects **84 synthetic scenarios** (40 known violations, 9 clean local cases, 35 abstentions), pending verification of the latest CI. Other image formats, SSIM, blur and semantic image integrity are **not** validated. The Lot 4 Exit Gate remains OPEN.
+
+## Implementation update — XLSX sheet-name integrity (CI pending)
+
+The owner confirmed the previous PNG commit `aaabe31` green. A bounded Python stdlib OOXML ZIP/XML parser now validates declared XLSX worksheet names and the referenced worksheet parts for `xlsx_required_sheets`. Five fixture scenarios cover present/missing sheets, missing workbook parts, malformed ZIP archives and unavailable receiver bytes. Expected score: **89 synthetic cases** (41 known violations, 10 local clean controls, 38 abstentions), **not yet CI-confirmed**.
+
+`xlsx_required_columns`, spreadsheet cell semantics/formulas, other document formats and quality algorithms remain unsupported. Authenticated remote evidence remains a separate lot. Lot 4 Exit Gate stays OPEN.
