@@ -24,6 +24,7 @@ from test_lot4_version_transitions import VIOLATIONS as VERSION_VIOLATIONS, ABST
 from test_lot4_transform_policy import SINGLE_VIOLATIONS as TRANSFORM_SINGLE_VIOLATIONS, JOURNEY_VIOLATIONS as TRANSFORM_JOURNEY_VIOLATIONS, SINGLE_ABSTENTIONS as TRANSFORM_SINGLE_ABSTENTIONS, JOURNEY_ABSTENTIONS as TRANSFORM_JOURNEY_ABSTENTIONS, compare_transform
 from test_lot4_csv_structure import CSV_CASES, run_csv_case
 from test_lot4_json_structure import JSON_CASES, run_json_case
+from test_lot4_wav_structure import WAV_CASES, run_wav_case
 from handoff_monitor import compare_handoff_validated, compare_journey_validated
 
 
@@ -122,11 +123,15 @@ def run():
         rows.append({"case": name, "truth": truth,
                      "verdict": run_json_case(name)["verdict"]})
 
+    for name, truth, _expected in WAV_CASES:
+        rows.append({"case": name, "truth": truth,
+                     "verdict": run_wav_case(name)["verdict"]})
+
     report = score_rows(rows)
     print(json.dumps(report, indent=2, sort_keys=True))
-    expected = {"TP": 37, "FP": 0, "FN": 0, "TN": 7,
+    expected = {"TP": 39, "FP": 0, "FN": 0, "TN": 8,
                 "unknown_violation": 0, "unknown_clean": 0,
-                "abstentions_unscored": 30}
+                "abstentions_unscored": 32}
     assert report["counts"] == expected, report["counts"]
     return 0
 
