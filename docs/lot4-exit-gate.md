@@ -1,3 +1,11 @@
+## Graphes DAG V0 explicitement activés — contrôle en cours, dernière CI à confirmer
+
+Le plan V0 conserve par défaut `journey_mode: linear`; une extension **optionnelle** `journey_mode: dag` interprète uniquement les arêtes des contrats. Le chemin strict `compare_journey_validated` route vers `compare_dag_journey` sans réordonner ou altérer le comportement linéaire historique. Le vérificateur DAG contrôle les arêtes attendues, la présence unique de chaque frontière, les cycles et composants déconnectés, les ID d'événements rejoués, la propagation d'artefacts aux forks et les conflits d'identité/version aux joins. L'ordre de présentation des handoffs est sans effet pour un graphe déclaré cohérent.
+
+**Limites de confiance importantes :** toute tentative de retry supplémentaire sur une même arête est, pour l'instant, `ALERT / DUPLICATE_OR_UNEXPECTED` car V0 ne dispose pas d'identité de tentative ni d'une preuve d'autorisation. Il s'agit de **détection prudente des retries ambigus**, pas de prise en charge fonctionnelle de retries légitimes avec réconciliation des tentatives. Les transitions de version DAG déclarées mais sans preuve indépendante restent `UNKNOWN`. Aucun graphe n'atteste la garde distante du récepteur (lot 5).
+
+Sept tests adversariaux DAG sont ajoutés et intégrés au score. **Résultat attendu (non encore validé sur le SHA final) : 147 scénarios synthétiques, 63 violations détectées, 20 contrôles locaux propres et 64 abstentions.** L'Exit Gate du lot 4 demeure OPEN tant que la CI et la décision explicite sur les retries légitimes ne sont pas vérifiées.
+
 # Lot 4 — Adversarial evaluation Exit Gate review
 
 ## Suite de l'audit — segments texte implémentés (CI du SHA final à confirmer)
