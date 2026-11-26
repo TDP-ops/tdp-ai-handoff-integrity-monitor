@@ -57,3 +57,9 @@ Do not proceed to Lot 5 solely because 37 constructed scenarios pass. Keep GitHu
 A backward-compatible V0 extension adds optional `transform_id` to `modified` lifecycle events and checks declared IDs against the active `allowed_transforms` list in strict single-hop and cross-hop evaluation. Disallowed identifiers produce `ALERT`; matching identifiers and legacy missing identifiers remain `UNKNOWN` without independent policy and content evidence. See [transform policy status](lot4-transform-policy-gap.md).
 
 The synthetic evaluation is expected to cover **63** cases (35 known violations, four clean local byte witnesses, 24 unscored abstentions). These numbers are **not yet CI-confirmed for the latest implementation**. The full Lot 4 Exit Gate remains OPEN because actual transformation contents, multimedia structures and quality metrics are still not verified; remote receipt is outside this local V0 gate.
+
+## Implementation update — real CSV header checks (CI pending)
+
+A minimal deterministic CSV structure checker now parses UTF-8/UTF-8-BOM headers from actual local sender and receiver files and checks `csv_required_columns`. Correct headers can produce a local byte-integrity `PASS` when exact bytes also match; missing required headers produce `ALERT`; absent/invalid evidence remains `UNKNOWN`. Real fixture tests and the scoring script are included. See [typed-checks documentation](typed-checks-v0.md) and [coverage matrix](lot4-coverage-gap-matrix.md).
+
+The previous **63 synthetic cases** were confirmed green by the owner. The new expected sample is **68** (36 violations, 5 local clean, 27 abstentions); the newest CI has **not yet been confirmed**. This does not demonstrate independent receiver custody, row completeness, or other multimedia/quality checks. The full Lot 4 Exit Gate remains **OPEN**.
