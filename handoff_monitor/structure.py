@@ -6,6 +6,7 @@ Unsupported checks and unreadable files must abstain, not produce false PASS.
 import csv
 import json
 import wave
+import zlib
 from pathlib import Path
 
 from .core import finding
@@ -118,7 +119,8 @@ def check_structure(kind, checks, sender_path, receiver_path, artifact_id):
         typ = check.get("check_type")
         if (kind, typ) not in (("csv", "csv_required_columns"),
                                ("json", "json_required_pointer"),
-                               ("audio", "audio_min_duration_ms")):
+                               ("audio", "audio_min_duration_ms"),
+                               ("image", "image_min_dimensions")):
             issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
                                   "Structure extractor not implemented"))
             continue
@@ -139,6 +141,17 @@ def check_structure(kind, checks, sender_path, receiver_path, artifact_id):
                     issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
                                           role + " CSV missing required columns: " +
                                           ", ".join(sorted(missing))))
+            elif typ == "image_min_dimensions":
+                from .image_structure import png_dimensions
+                try:
+                    width, height = png_dimensions(path)
+                except (OSError, ValueError, OverflowError, MemoryError, zlib.error):
+                    issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
+                                          role + " PNG structure unreadable or unsupported"))
+                    continue
+                if width < check["width_px"] or height < check["height_px"]:
+                    issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
+                                          role + " PNG dimensions below minima"))
             elif typ == "audio_min_duration_ms":
                 try:
                     frames, rate = _wav_metadata(path)
