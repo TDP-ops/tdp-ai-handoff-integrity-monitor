@@ -1,6 +1,6 @@
 # Typed integrity assertions — V0 / lot 1
 
-**Status:** V0 declarations with selected local runtime checks (exact bytes, CSV required columns, JSON required pointers, PCM WAV duration/sample rate and PNG RGB/RGBA dimensions); other typed extractors, quality algorithms and independent receiver evidence remain unavailable.
+**Status:** V0 declarations with selected local runtime checks (exact bytes, CSV required columns, JSON required pointers, PCM WAV duration/sample rate, PNG RGB/RGBA dimensions and XLSX sheet names); other typed extractors, quality algorithms and independent receiver evidence remain unavailable.
 
 The canonical file is `schemas/handoff-v0.schema.json`. The `artifact.checks` object has three optional components:
 - `exact_bytes: true`: exact SHA-256 comparison of independently observed sender and receiver bytes.
@@ -54,6 +54,12 @@ The checks **do not** establish audio intelligibility, channel semantics, transc
 `image_min_dimensions` now measures **bounded uncompressed RGB/RGBA PNG raster dimensions** from actual sender/receiver files, using only Python's standard library. It validates PNG signature, required chunks and CRCs, supported 8-bit non-interlaced RGB/RGBA layout, the zlib stream, the expected scanline length and filter tags, before comparing width and height to the declared minima. Input is capped at 8 MiB and decoded pixels at 4 million. Dimension violations produce `MISSING_REQUIRED_RULE` / `ALERT`. Corrupt, missing or unsupported files produce `UNVERIFIABLE` / `UNKNOWN`.
 
 **Scope limitation:** PNG palette, grayscale, interlaced, high-bit-depth, animated and other image formats are not supported; neither SSIM nor blur is measured. PNG scanline payload validation does not establish perceptual quality, semantic content, authentic custody or image rendering equivalence.
+
+## Implemented local check — XLSX required sheets (lot 4; CI pending)
+
+`xlsx_required_sheets` now reads actual local XLSX/OOXML ZIP archives with the Python standard library. The parser checks required workbook parts, ZIP CRCs, internal worksheet relationships and unique declared sheet names. It bounds the archive to 8 MiB, total decompressed entries to 24 MiB and 128 members. Missing named sheets produce `MISSING_REQUIRED_RULE` / `ALERT`; malformed, oversized, inconsistent or unavailable archives produce `UNVERIFIABLE` / `UNKNOWN`.
+
+**Not implemented:** `xlsx_required_columns`, cell/formula verification, external relationships, non-standard packages and authenticated receiver custody. This is a check of locally observed sheet names only, not spreadsheet content quality.
 
 ## Supported declarative quality checks
 
