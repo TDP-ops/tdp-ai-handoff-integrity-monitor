@@ -87,3 +87,9 @@ The expanded suite expects **84 synthetic scenarios** (40 known violations, 9 cl
 The owner confirmed the previous PNG commit `aaabe31` green. A bounded Python stdlib OOXML ZIP/XML parser now validates declared XLSX worksheet names and the referenced worksheet parts for `xlsx_required_sheets`. Five fixture scenarios cover present/missing sheets, missing workbook parts, malformed ZIP archives and unavailable receiver bytes. Expected score: **89 synthetic cases** (41 known violations, 10 local clean controls, 38 abstentions), **not yet CI-confirmed**.
 
 `xlsx_required_columns`, spreadsheet cell semantics/formulas, other document formats and quality algorithms remain unsupported. Authenticated remote evidence remains a separate lot. Lot 4 Exit Gate stays OPEN.
+
+## Implementation update — XLSX first-row required columns (CI pending)
+
+The owner confirmed CI green for prior XLSX sheet-name commit `7fae56b`. The engine now checks `xlsx_required_columns` from actual local worksheets, supporting literal inline, shared-string and direct-string first-row headers. Missing required sheets or header names are `ALERT`; formula-derived or unsupported headers, malformed files and missing observations are `UNKNOWN`. Six new strict-API cases are added to the adversarial matrix.
+
+Expected expanded suite: **95 synthetic cases**, including 43 known violations, 12 clean local controls and 40 unscored abstentions. **CI for the final commit is pending.** Formula evaluation, cell contents, other format extractors and authenticated remote custody remain outside verified scope, so the Lot 4 Exit Gate stays **OPEN**.
