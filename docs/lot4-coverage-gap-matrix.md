@@ -19,7 +19,7 @@ The original project plan calls for adversarial tests across image, PDF, DOCX, a
 | XLSX | Required sheets declaration causes UNKNOWN | Workbook/sheet/column parsing | Valid XLSX fixtures, deterministic parsing, edge cases |
 | DB schema | Foreign-key requirement declaration causes UNKNOWN | Schema/catalog comparison and dialect differences | Canonical schema snapshots, supported dialect definition, positive/negative cases |
 | Audio | Duration/sample-rate declarations cause UNKNOWN | Audio decoding, duration/rate determination | Valid synthetic audio fixtures and decoder implementation |
-| YAML/JSON/text | No representative positive and negative parser assertions in the 37-case benchmark | Semantic/structure checks and canonicalization where promised | Explicit supported checks with fixtures or a documented exclusion |
+| JSON / YAML / text | JSON required-pointer check now runs against local valid, missing, malformed and absent-byte fixtures (latest CI pending); YAML and text extractors remain unavailable | No JSON value semantics, YAML parser or text-segment hashing; no authenticated custody | Verify JSON CI; implement remaining declared checks independently |
 
 ## Evidence accounting
 
@@ -40,3 +40,7 @@ No vendor service, external data transfer, or paid dependency is introduced by t
 ## Implementation update — local CSV headers (latest CI pending)
 
 The local CSV extractor checks required header names in caller-supplied sender and receiver files. The new fixtures cover correct headers, missing columns, duplicate names, invalid UTF-8 and missing receiver paths. Results concern observed local structure, not authenticated custody. The expanded benchmark expects **68 synthetic cases** (36 violations, 5 clean, 27 abstentions); final CI verification is pending. Other format-specific extractors remain unavailable.
+
+## Implementation update — JSON Pointer (latest CI pending)
+
+The `json_required_pointer` local checker now reads real JSON data with strict UTF-8 parsing, duplicate-key rejection, bounded 8 MiB input, JSON Pointer unescaping and canonical array-index handling. Six new synthetic execution cases are included. The expected matrix is **74 cases** (37 known violations, 7 clean local controls, 30 abstentions), pending CI for the final SHA. Actual content semantics, YAML/text checks, remote custody and other type-specific extractors remain unverified.
