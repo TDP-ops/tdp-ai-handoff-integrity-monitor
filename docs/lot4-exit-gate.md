@@ -111,3 +111,9 @@ Expected score: **106 synthetic cases** (46 known violations, 14 clean local obs
 The owner confirmed CI green for the preceding PDF xref syntax fix `c5b1bc2`. The engine now implements a **bounded raw unfiltered PDF page-stream fingerprint** under pinned extractor ID `tdp-pdf-simple-page-stream-sha256-v1`. Six synthetic tests examine identical content, changed content, missing page, unsupported compressed stream, mismatched extractor ID, and missing receiver evidence. The SHA-256 binds the directly declared page MediaBox and raw unfiltered stream bytes; it is **not** a rendered page, semantic-text or general PDF fidelity check.
 
 Expected matrix: **112 synthetic cases** (48 known violations, 15 clean local controls, 49 abstentions), **CI for the final SHA not confirmed yet**. Complex PDF layouts, independent custody and other original Lot 4 requirements remain unverified. **Exit Gate OPEN.**
+
+## Implementation update — read-only SQLite schema controls (CI pending)
+
+The owner confirmed the previous PDF page-stream SHA `abb522a` green. The V0 engine now supports three local SQLite 3 checks: `db_required_table`, `db_required_column` (declared type string), and `db_required_foreign_key`. It opens bounded SQLite files in read-only immutable mode, checks structure and compares actual schema definitions. Seven new strict-API scenarios exercise valid and absent table/column/foreign-key cases, wrong column type, non-SQLite evidence and missing receiver data.
+
+Expected matrix: **119 synthetic cases** (52 known violations, 16 locally clean examples, 51 abstentions), **latest SHA CI pending**. Other database dialects, row-level data validity and remote custody are not measured. The image perceptual quality metrics and other remaining Lot 4 Exit Gate requirements remain OPEN.
