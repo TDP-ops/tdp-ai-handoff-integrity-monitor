@@ -63,3 +63,9 @@ The synthetic evaluation is expected to cover **63** cases (35 known violations,
 A minimal deterministic CSV structure checker now parses UTF-8/UTF-8-BOM headers from actual local sender and receiver files and checks `csv_required_columns`. Correct headers can produce a local byte-integrity `PASS` when exact bytes also match; missing required headers produce `ALERT`; absent/invalid evidence remains `UNKNOWN`. Real fixture tests and the scoring script are included. See [typed-checks documentation](typed-checks-v0.md) and [coverage matrix](lot4-coverage-gap-matrix.md).
 
 The previous **63 synthetic cases** were confirmed green by the owner. The new expected sample is **68** (36 violations, 5 local clean, 27 abstentions); the newest CI has **not yet been confirmed**. This does not demonstrate independent receiver custody, row completeness, or other multimedia/quality checks. The full Lot 4 Exit Gate remains **OPEN**.
+
+## Implementation update — JSON Pointer check (CI pending)
+
+`json_required_pointer` is now evaluated against actually opened local JSON bytes with the standard library, RFC 6901 pointer resolution, duplicate-key rejection and an 8 MiB input bound. Six strict-API fixture scenarios cover valid pointers, escaping, absence, malformed/invalid encodings and missing receiver evidence. See [typed checks](typed-checks-v0.md).
+
+The preceding **68-case** CI was confirmed green by the owner. Expected expanded suite: **74 synthetic cases** (37 known violations, 7 clean local examples, 30 unscored abstentions); results **not confirmed for the latest SHA**. Actual JSON value semantics, multimedia parsing, remote custody, and broader original Lot 4 acceptance requirements remain unverified. Exit Gate stays OPEN.
