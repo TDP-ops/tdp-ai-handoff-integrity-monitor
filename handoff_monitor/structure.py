@@ -126,7 +126,8 @@ def check_structure(kind, checks, sender_path, receiver_path, artifact_id):
                                ("xlsx", "xlsx_required_sheets"),
                                ("xlsx", "xlsx_required_columns"),
                                ("docx", "docx_required_paragraph_sha256"),
-                               ("pdf", "pdf_min_pages")):
+                               ("pdf", "pdf_min_pages"),
+                               ("pdf", "pdf_required_page_sha256")):
             issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
                                   "Structure extractor not implemented"))
             continue
@@ -205,6 +206,21 @@ def check_structure(kind, checks, sender_path, receiver_path, artifact_id):
                 if observed != check["extracted_paragraph_sha256"]:
                     issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
                                           role + " required DOCX paragraph missing or changed"))
+            elif typ == "pdf_required_page_sha256":
+                from .pdf_structure import PDF_PAGE_EXTRACTOR_ID, pdf_page_hash
+                if check["extractor_id"] != PDF_PAGE_EXTRACTOR_ID:
+                    issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
+                                          "PDF page extractor ID not supported"))
+                    continue
+                try:
+                    observed = pdf_page_hash(path, check["page_index"])
+                except (OSError, ValueError, OverflowError, MemoryError, RecursionError):
+                    issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
+                                          role + " PDF page stream cannot be extracted safely"))
+                    continue
+                if observed != check["extracted_page_sha256"]:
+                    issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
+                                          role + " required PDF page absent or modified"))
             elif typ == "pdf_min_pages":
                 from .pdf_structure import pdf_page_count
                 try:
