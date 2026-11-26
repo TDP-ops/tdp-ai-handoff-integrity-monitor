@@ -114,7 +114,13 @@ def compare_handoff(plan, sent, received, *, sender_files=None, receiver_files=N
     if "steps" in plan:
         steps = plan["steps"]
         boundary = (sent.get("from_step"), sent.get("to_step"))
-        allowed_boundaries = set(zip(steps, steps[1:]))
+        if plan.get("journey_mode", "linear") == "dag":
+            allowed_boundaries = {
+                (c.get("from_step"), c.get("to_step"))
+                for c in plan.get("contracts", [])
+            }
+        else:
+            allowed_boundaries = set(zip(steps, steps[1:]))
         if (len(steps) != len(set(steps))
                 or boundary not in allowed_boundaries):
             issues.append(finding("CONTRACT_MISMATCH", "ALERT",
