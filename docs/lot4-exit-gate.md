@@ -1,5 +1,11 @@
 # Lot 4 — Adversarial evaluation Exit Gate review
 
+## Suite de l'audit — segments texte implémentés (CI du SHA final à confirmer)
+
+Le blocage `text_required_segment_sha256` dispose maintenant d'un extracteur runtime versionné `tdp-text-utf8-line-sha256-v1` pour les lignes de texte UTF-8 LF bornées. Sept scénarios exécutables couvrent contrôle positif, modification et suppression d'une ligne centrale, encodage invalide, localisateur non supporté, identifiant d'extracteur invalide et absence d'observation du récepteur. La matrice attendue passe à **140 scénarios synthétiques** (57 violations, 20 témoins propres locaux et 63 abstentions). Aucun résultat de CI du dernier SHA n'est présumé.
+
+**Statut du lot : OPEN.** Le blocage restant relatif aux forks/joins, retries et événements hors ordre du plan initial n'est pas traité par ce contrôle. Les preuves de réception distante restent au lot 5.
+
 ## Audit consolidé du 26 novembre 2026 — décision : EXIT GATE OPEN
 
 **Source d'exécution vérifiée :** GitHub Actions, SHA `30009d201f51694ef3eaf1d802a1ffb365fce4a3`, job `140133732030`, [run #45885102178](https://github.com/TDP-ops/tdp-ai-handoff-integrity-monitor/actions/runs/45885102178) : **SUCCESS** (unittest, coverage et scoring). Logs consultés : **235 tests**, **133 scénarios synthétiques**, **55 TP / 0 FP / 0 FN / 19 TN / 59 abstentions non scorées**. Couverture en lignes mesurée sur les quatre modules centraux : core 91,4 %, journey 91,0 %, lineage 90,5 %, validation 98,5 %. Ces chiffres sont circonscrits au jeu synthétique, pas des taux de détection en production ni une preuve de couverture des extracteurs.
