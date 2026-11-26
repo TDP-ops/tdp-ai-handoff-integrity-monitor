@@ -792,6 +792,15 @@
             "type": "string"
           },
           "default": []
+        },
+        "journey_mode": {
+          "type": "string",
+          "enum": [
+            "linear",
+            "dag"
+          ],
+          "default": "linear",
+          "description": "Optional opt-in contract-edge DAG traversal; legacy plans remain linear."
         }
       }
     },
