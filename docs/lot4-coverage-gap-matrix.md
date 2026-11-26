@@ -16,7 +16,7 @@ The original project plan calls for adversarial tests across image, PDF, DOCX, a
 | PDF | `pdf_min_pages` declaration causes UNKNOWN | Actual page count, page SHA-256 extraction | Controlled valid PDFs, parser reference, positive/negative cases |
 | DOCX | Required paragraph SHA declaration causes UNKNOWN | Paragraph extraction and deterministic canonicalization | Valid DOCX fixtures, algorithm/extractor versions, counterexamples |
 | CSV | Local UTF-8 header parsing implemented for `csv_required_columns`; valid, absent and malformed header tests (latest CI pending) | Does not establish row completeness, broad dialect support or remote custody | Confirm latest CI and extend supported formats |
-| XLSX | Required sheets declaration causes UNKNOWN | Workbook/sheet/column parsing | Valid XLSX fixtures, deterministic parsing, edge cases |
+| XLSX | Local OOXML required-sheet names parser with valid, absent, corrupted and missing-path fixture tests (latest CI pending) | Column/cell contents, formulas, external links and remote authenticity are not checked | Complete `xlsx_required_columns` and verify CI |
 | DB schema | Foreign-key requirement declaration causes UNKNOWN | Schema/catalog comparison and dialect differences | Canonical schema snapshots, supported dialect definition, positive/negative cases |
 | Audio | PCM WAV duration and sample-rate checks implemented on local bytes with threshold, truncation and missing-path tests (latest CI pending) | No compressed audio decoder, transcript or intelligibility scoring; no authenticated remote custody | Confirm CI and expand to remaining modalities |
 | JSON / YAML / text | JSON required-pointer check now runs against local valid, missing, malformed and absent-byte fixtures (latest CI pending); YAML and text extractors remain unavailable | No JSON value semantics, YAML parser or text-segment hashing; no authenticated custody | Verify JSON CI; implement remaining declared checks independently |
@@ -52,3 +52,7 @@ Real locally generated uncompressed PCM WAV fixtures now exercise duration and s
 ## Implementation update — PNG dimensions (latest CI pending)
 
 PNG structural checks are now executed on actual synthetic RGB/RGBA PNG raster bytes, with checks for dimensions, CRC integrity, missing pixel data, unsupported variants, and missing receiver observations. Expected score: **84 synthetic cases** (40 known violations, 9 clean local examples, 35 abstentions); the most recent SHA still requires CI confirmation. This does not constitute broader image verification or perceptual quality measurement.
+
+## Implementation update — XLSX required sheets (latest CI pending)
+
+Bounded ZIP/XML XLSX parsing now checks named worksheets using workbook relationships and ZIP CRCs. The five added synthetic scenarios increase the expected adversarial matrix to **89 cases** (41 violations, 10 clean local examples, 38 abstentions). CI on the final SHA is still pending; XLSX columns and spreadsheet semantics remain unimplemented.
