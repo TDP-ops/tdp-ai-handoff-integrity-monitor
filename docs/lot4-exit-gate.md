@@ -75,3 +75,9 @@ The preceding **68-case** CI was confirmed green by the owner. Expected expanded
 Following owner-confirmed green CI for `c4a49a3` (JSON), the V0 engine now observes uncompressed PCM WAV **duration** and **sample rate** on locally provided sender and receiver file paths. Actual synthetic WAV test files check compliant values, threshold violations, truncated frames, and unavailable receiver evidence. The parser is stdlib-only and bounded at 16 MiB; non-PCM/unsupported files remain `UNKNOWN`.
 
 The new expected suite contains **79 synthetic cases** (39 violations, 8 clean local cases, 32 abstentions), **pending the CI of the latest commit**. This does not measure intelligibility, transcription or authenticated custody. Other typed structure/quality extractors remain incomplete, so **Lot 4 Exit Gate stays OPEN**.
+
+## Implementation update — bounded PNG dimensions (CI pending)
+
+After the owner-confirmed green CI for `d3e6ec3` (WAV), the engine now verifies `image_min_dimensions` for actual locally observed 8-bit RGB/RGBA, non-interlaced PNG files. The parser checks chunk CRC and decoded scanline structure before accepting dimensional measurements. Five new synthetic fixture scenarios evaluate compliant PNG, insufficient dimensions, CRC corruption, truncated raster and missing receiver evidence.
+
+The expanded suite expects **84 synthetic scenarios** (40 known violations, 9 clean local cases, 35 abstentions), pending verification of the latest CI. Other image formats, SSIM, blur and semantic image integrity are **not** validated. The Lot 4 Exit Gate remains OPEN.
