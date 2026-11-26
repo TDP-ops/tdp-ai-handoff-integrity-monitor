@@ -1,6 +1,6 @@
 # Typed integrity assertions — V0 / lot 1
 
-**Status:** Declarative contract only. No parser, quality algorithm, independent receiver probe, or detection engine is implemented by this document.
+**Status:** V0 declarations with selected local runtime checks (exact bytes, CSV required columns and JSON required pointers); other typed extractors, quality algorithms and independent receiver evidence remain unavailable.
 
 The canonical file is `schemas/handoff-v0.schema.json`. The `artifact.checks` object has three optional components:
 - `exact_bytes: true`: exact SHA-256 comparison of independently observed sender and receiver bytes.
@@ -36,6 +36,12 @@ The canonical file is `schemas/handoff-v0.schema.json`. The `artifact.checks` ob
 The `csv_required_columns` assertion is now executed from caller-provided sender and receiver file paths when `artifact.kind` is `csv`. It uses the standard-library CSV reader, UTF-8 (optional BOM), an exact case-sensitive set of header names, and refuses missing/duplicate/empty header names. A required header missing from either readable copy yields `MISSING_REQUIRED_RULE` / `ALERT`. An unreadable file, invalid UTF-8, missing local path, or malformed header yields `UNVERIFIABLE` / `UNKNOWN`. Exact-byte checks are still independent and may produce a higher-priority `ALERT`.
 
 This proves only the observed header columns, **not row completeness, data types, general CSV dialect support, content semantics or authenticated remote custody**. No third-party parser, paid service or client data is used. Validation is pending for the latest CI SHA.
+
+## Implemented local check — JSON Pointer (lot 4; CI pending)
+
+`json_required_pointer` now resolves RFC 6901 JSON Pointers against locally supplied sender and receiver JSON files. Parsing uses the Python standard library, UTF-8 (optional BOM), rejects duplicate object keys and non-standard constants, and limits each parsed file to 8 MiB. `""` addresses the JSON root, escaped `~1` and `~0` tokens are decoded, and array indices must be canonical decimal indices.
+
+An absent required pointer yields `MISSING_REQUIRED_RULE` / `ALERT`; invalid JSON, invalid encoding, duplicate keys, oversized JSON or missing local bytes yield `UNVERIFIABLE` / `UNKNOWN`. The check proves only the local existence of the indicated path, **not its value, semantics, completeness or independently authenticated receiver custody**.
 
 ## Supported declarative quality checks
 
