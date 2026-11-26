@@ -75,6 +75,12 @@ This does **not** verify tables, tracked changes, text boxes, fields, styles, hy
 
 This is deliberately **not** a general PDF parser, page renderer, extractable page-content hash or a guarantee that no middle page was removed from a larger file. `pdf_required_page_sha256` remains unsupported. Independent receiver custody is not established.
 
+## Implemented local check — pinned PDF raw page stream fingerprint (lot 4)
+
+`pdf_required_page_sha256` is now evaluated using the exact pinned extractor ID `tdp-pdf-simple-page-stream-sha256-v1` for the bounded classic-xref PDF 1.x subset. This requires a directly referenced **unfiltered** stream in the selected page and a directly declared integer `/MediaBox`. The SHA-256 input is the UTF-8/ASCII bytes of `TDP-PDF-PAGE-RAW-V1\n`, the four MediaBox integers joined by spaces, one NUL delimiter, and the complete raw content-stream bytes. This is a *byte-oriented fingerprint*, not text extraction or rendering comparison. Modified or absent referenced page data yields `ALERT`; unknown extractor ID, compressed streams, unsupported structures or unavailable local files produce `UNKNOWN`.
+
+**Trust limitation:** This does not prove visual or semantic equivalence, resolve inherited graphics state, validate page resources, or authenticate recipient custody. It must never be described as a general PDF page text or image hash. Other modern PDF layouts are unsupported.
+
 ## Supported declarative quality checks
 
 | Artifact kind | check_type | Required parameters | Limitation |
