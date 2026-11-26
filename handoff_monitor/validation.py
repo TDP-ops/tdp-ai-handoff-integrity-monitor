@@ -57,7 +57,7 @@ def compare_handoff_validated(plan, sent, received, **kwargs):
     problems = validate_handoff_records(plan, sent, received)
     # Auxiliary local paths are outside the canonical JSON event schema.
     # Reject malformed inputs before the byte comparator can access them.
-    for role in ("sender_files", "receiver_files"):
+    for role in ("sender_files", "receiver_files", "reference_files"):
         paths = kwargs.get(role)
         if paths is None:
             continue
