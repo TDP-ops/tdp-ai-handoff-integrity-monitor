@@ -93,3 +93,9 @@ The owner confirmed the previous PNG commit `aaabe31` green. A bounded Python st
 The owner confirmed CI green for prior XLSX sheet-name commit `7fae56b`. The engine now checks `xlsx_required_columns` from actual local worksheets, supporting literal inline, shared-string and direct-string first-row headers. Missing required sheets or header names are `ALERT`; formula-derived or unsupported headers, malformed files and missing observations are `UNKNOWN`. Six new strict-API cases are added to the adversarial matrix.
 
 Expected expanded suite: **95 synthetic cases**, including 43 known violations, 12 clean local controls and 40 unscored abstentions. **CI for the final commit is pending.** Formula evaluation, cell contents, other format extractors and authenticated remote custody remain outside verified scope, so the Lot 4 Exit Gate stays **OPEN**.
+
+## Implementation update — DOCX paragraph hash (CI pending)
+
+Following owner-confirmed green CI for `15feaa3` (XLSX columns), the engine now supports the pinned local DOCX extractor `tdp-docx-body-paragraph-utf8-v1`. It reads bounded OOXML files and hashes direct simple-text body paragraphs with deterministic UTF-8 SHA-256. A changed or missing required paragraph yields `ALERT`; unsupported rich structures, extractor identity mismatch and missing observations remain `UNKNOWN`. Six strict synthetic cases added.
+
+Expected extended benchmark: **101 cases** (45 known violations, 13 locally clean examples and 43 abstentions), **CI of latest SHA pending**. This is not a generic DOCX parser or proof of independent remote custody; PDF, DB and image quality requirements remain incomplete. **Lot 4 Exit Gate OPEN.**
