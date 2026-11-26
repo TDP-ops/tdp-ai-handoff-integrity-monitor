@@ -127,7 +127,10 @@ def check_structure(kind, checks, sender_path, receiver_path, artifact_id):
                                ("xlsx", "xlsx_required_columns"),
                                ("docx", "docx_required_paragraph_sha256"),
                                ("pdf", "pdf_min_pages"),
-                               ("pdf", "pdf_required_page_sha256")):
+                               ("pdf", "pdf_required_page_sha256"),
+                               ("db_schema", "db_required_table"),
+                               ("db_schema", "db_required_column"),
+                               ("db_schema", "db_required_foreign_key")):
             issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
                                   "Structure extractor not implemented"))
             continue
@@ -206,6 +209,18 @@ def check_structure(kind, checks, sender_path, receiver_path, artifact_id):
                 if observed != check["extracted_paragraph_sha256"]:
                     issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
                                           role + " required DOCX paragraph missing or changed"))
+            elif typ.startswith("db_required_"):
+                from .db_structure import sqlite_schema, sqlite_schema_check
+                try:
+                    tables = sqlite_schema(path)
+                    satisfied = sqlite_schema_check(tables, check)
+                except (OSError, ValueError, OverflowError, MemoryError):
+                    issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
+                                          role + " SQLite schema unreadable or unsupported"))
+                    continue
+                if not satisfied:
+                    issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
+                                          role + " SQLite required schema rule not satisfied"))
             elif typ == "pdf_required_page_sha256":
                 from .pdf_structure import PDF_PAGE_EXTRACTOR_ID, pdf_page_hash
                 if check["extractor_id"] != PDF_PAGE_EXTRACTOR_ID:
