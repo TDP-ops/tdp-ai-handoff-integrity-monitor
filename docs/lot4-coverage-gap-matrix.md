@@ -1,5 +1,9 @@
 # Lot 4 — Coverage and remaining evidence matrix
 
+## Update — V0 text segment hashes (latest CI pending)
+
+`text_required_segment_sha256` now has a versioned executable extractor for bounded, BOM-free UTF-8 files using canonical 1-based `line:N` locators. Seven synthetic scenarios check intact/modified/removed protected lines and required `UNKNOWN` cases. Expected updated synthetic matrix: **140** (57 violations, 20 clean local controls, 63 abstentions). Full latest CI is pending; no broader text semantics are claimed. **Remaining Lot 4 blocker:** planned fork/join/out-of-order/retry acceptance, not remote custody (Lot 5).
+
 ## Exit Gate audit — 2026-11-26
 
 - **Last complete evidence verified:** GitHub Actions `30009d2` succeeded. Raw job logs show 235 passing unit tests, 133 synthetic scenarios, TP=55, FP=0, FN=0, TN=19, and 59 excluded `UNKNOWN` abstentions; these are **not production statistics**.
