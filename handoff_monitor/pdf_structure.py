@@ -51,11 +51,11 @@ def _objects(raw):
         if count > 1000 or first + count > 1000:
             raise ValueError("Excessive PDF object count")
         for index in range(first, first + count):
-            row_end = raw.find(b"\\n", cursor)
+            row_end = raw.find(b"\n", cursor)
             if row_end < 0:
                 raise ValueError("Unterminated xref entry")
             row = raw[cursor:row_end + 1]
-            entry = re.fullmatch(rb"(\\d{10}) (\\d{5}) ([nf]) \\r?\\n", row)
+            entry = re.fullmatch(rb"(\d{10}) (\d{5}) ([nf]) \r?\n", row)
             if not entry:
                 raise ValueError("Malformed classic xref entry")
             cursor = row_end + 1
