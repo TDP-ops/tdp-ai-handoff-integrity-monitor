@@ -1,6 +1,6 @@
 # Typed integrity assertions — V0 / lot 1
 
-**Status:** V0 declarations with selected local runtime checks (exact bytes, CSV required columns and JSON required pointers); other typed extractors, quality algorithms and independent receiver evidence remain unavailable.
+**Status:** V0 declarations with selected local runtime checks (exact bytes, CSV required columns, JSON required pointers, PCM WAV duration and WAV sample rate); other typed extractors, quality algorithms and independent receiver evidence remain unavailable.
 
 The canonical file is `schemas/handoff-v0.schema.json`. The `artifact.checks` object has three optional components:
 - `exact_bytes: true`: exact SHA-256 comparison of independently observed sender and receiver bytes.
@@ -42,6 +42,12 @@ This proves only the observed header columns, **not row completeness, data types
 `json_required_pointer` now resolves RFC 6901 JSON Pointers against locally supplied sender and receiver JSON files. Parsing uses the Python standard library, UTF-8 (optional BOM), rejects duplicate object keys and non-standard constants, and limits each parsed file to 8 MiB. `""` addresses the JSON root, escaped `~1` and `~0` tokens are decoded, and array indices must be canonical decimal indices.
 
 An absent required pointer yields `MISSING_REQUIRED_RULE` / `ALERT`; invalid JSON, invalid encoding, duplicate keys, oversized JSON or missing local bytes yield `UNVERIFIABLE` / `UNKNOWN`. The check proves only the local existence of the indicated path, **not its value, semantics, completeness or independently authenticated receiver custody**.
+
+## Implemented local checks — PCM WAV duration and sample rate (lot 4; CI pending)
+
+The stdlib `wave` parser now evaluates `audio_min_duration_ms` and `audio_min_sample_rate_hz` on locally supplied **uncompressed PCM WAV** sender/receiver files. Duration is compared with integer frame counts (`nframes * 1000` versus `duration_ms * sample_rate`), avoiding floating-point threshold drift. The checker confirms the declared WAV frame data are readable and limits each input to 16 MiB. Short duration or insufficient sample rate yields `MISSING_REQUIRED_RULE` / `ALERT`; unsupported, truncated or missing WAV observations yield `UNVERIFIABLE` / `UNKNOWN`.
+
+The checks **do not** establish audio intelligibility, channel semantics, transcription fidelity, compressed-format support, or authenticated remote receipt. They do not implement image perceptual quality metrics.
 
 ## Supported declarative quality checks
 
