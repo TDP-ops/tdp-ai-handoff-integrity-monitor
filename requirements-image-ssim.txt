@@ -1,0 +1,6 @@
+# Optional image SSIM runtime, pinned for reproducible metric calculations.
+# The deterministic V0 engine remains usable without these packages;
+# SSIM yields UNKNOWN if this optional runtime is unavailable.
+scikit-image==0.26.0
+numpy==2.3.5
+scipy==1.16.3
