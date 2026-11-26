@@ -39,7 +39,10 @@ def structural_case(kind, structure, *, tamper=False):
     with tempfile.TemporaryDirectory() as folder:
         source = Path(folder) / "source"
         dest = Path(folder) / "receiver"
-        source.write_bytes(b"synthetic source; no real media parser")
+        # Invalid UTF-8 deliberately tests CSV parser abstention rather than
+        # suggesting a successfully parsed synthetic CSV.
+        original_bytes = b"\xff" if kind == "csv" else b"synthetic source; no real media parser"
+        source.write_bytes(original_bytes)
         dest.write_bytes(b"modified source" if tamper else source.read_bytes())
         for event, path in ((sent, source), (received, dest)):
             artifact = event["artifacts"][0]
