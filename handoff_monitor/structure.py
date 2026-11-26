@@ -5,6 +5,7 @@ Unsupported checks and unreadable files must abstain, not produce false PASS.
 """
 import csv
 import json
+import wave
 from pathlib import Path
 
 from .core import finding
@@ -63,13 +64,61 @@ def _json_pointer_exists(path, pointer):
     return True
 
 
+
+def _wav_metadata(path):
+    """Read bounded WAV PCM metadata and verify complete declared frame data."""
+    file_path = Path(path)
+    with wave.open(str(file_path), "rb") as stream:
+        if stream.getcomptype() != "NONE":
+            raise ValueError("Compressed WAV unsupported")
+        rate = stream.getframerate()
+        count = stream.getnframes()
+        channels = stream.getnchannels()
+        width = stream.getsampwidth()
+        if rate <= 0 or channels <= 0 or width <= 0:
+            raise ValueError("Invalid WAV parameters")
+        # Verify the data chunk is complete, not just the declared header.
+        if file_path.stat().st_size > 16 * 1024 * 1024:
+            raise ValueError("WAV exceeds bounded parser size")
+        frames = stream.readframes(count)
+        if len(frames) != count * channels * width:
+            raise ValueError("Truncated WAV sample data")
+    return count, rate
+
+
+def check_audio_quality(checks, sender_path, receiver_path, artifact_id):
+    """Evaluate sample-rate minima on actual local WAV; others abstain."""
+    issues = []
+    for check in checks:
+        if check.get("check_type") != "audio_min_sample_rate_hz":
+            issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
+                                  "Quality metric not implemented"))
+            continue
+        for role, path in (("sender", sender_path), ("receiver", receiver_path)):
+            if path is None:
+                issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
+                                      role + " WAV observation unavailable"))
+                continue
+            try:
+                _count, rate = _wav_metadata(path)
+            except (OSError, EOFError, ValueError, wave.Error):
+                issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
+                                      role + " WAV metadata unreadable"))
+                continue
+            if rate < check["sample_rate_hz"]:
+                issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
+                                      role + " WAV sample rate below minimum"))
+    return issues
+
+
 def check_structure(kind, checks, sender_path, receiver_path, artifact_id):
     """Return findings only for actually evaluated structure declarations."""
     issues = []
     for check in checks:
         typ = check.get("check_type")
         if (kind, typ) not in (("csv", "csv_required_columns"),
-                               ("json", "json_required_pointer")):
+                               ("json", "json_required_pointer"),
+                               ("audio", "audio_min_duration_ms")):
             issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
                                   "Structure extractor not implemented"))
             continue
@@ -90,6 +139,16 @@ def check_structure(kind, checks, sender_path, receiver_path, artifact_id):
                     issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
                                           role + " CSV missing required columns: " +
                                           ", ".join(sorted(missing))))
+            elif typ == "audio_min_duration_ms":
+                try:
+                    frames, rate = _wav_metadata(path)
+                except (OSError, EOFError, ValueError, wave.Error):
+                    issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
+                                          role + " WAV duration unreadable"))
+                    continue
+                if frames * 1000 < check["duration_ms"] * rate:
+                    issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
+                                          role + " WAV duration below minimum"))
             else:
                 try:
                     exists = _json_pointer_exists(path, check["pointer"])
