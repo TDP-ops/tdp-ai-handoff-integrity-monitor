@@ -16,7 +16,7 @@ The original project plan calls for adversarial tests across image, PDF, DOCX, a
 | PDF | `pdf_min_pages` declaration causes UNKNOWN | Actual page count, page SHA-256 extraction | Controlled valid PDFs, parser reference, positive/negative cases |
 | DOCX | Required paragraph SHA declaration causes UNKNOWN | Paragraph extraction and deterministic canonicalization | Valid DOCX fixtures, algorithm/extractor versions, counterexamples |
 | CSV | Local UTF-8 header parsing implemented for `csv_required_columns`; valid, absent and malformed header tests (latest CI pending) | Does not establish row completeness, broad dialect support or remote custody | Confirm latest CI and extend supported formats |
-| XLSX | Local OOXML required-sheet names parser with valid, absent, corrupted and missing-path fixture tests (latest CI pending) | Column/cell contents, formulas, external links and remote authenticity are not checked | Complete `xlsx_required_columns` and verify CI |
+| XLSX | Local OOXML worksheet names and first-row inline/shared string headers tested with present, absent and unsupported formula cases (latest CI pending) | No cell-row completeness, formula execution, non-standard sheets or independently authenticated custody | Validate CI; continue other missing formats and quality checks |
 | DB schema | Foreign-key requirement declaration causes UNKNOWN | Schema/catalog comparison and dialect differences | Canonical schema snapshots, supported dialect definition, positive/negative cases |
 | Audio | PCM WAV duration and sample-rate checks implemented on local bytes with threshold, truncation and missing-path tests (latest CI pending) | No compressed audio decoder, transcript or intelligibility scoring; no authenticated remote custody | Confirm CI and expand to remaining modalities |
 | JSON / YAML / text | JSON required-pointer check now runs against local valid, missing, malformed and absent-byte fixtures (latest CI pending); YAML and text extractors remain unavailable | No JSON value semantics, YAML parser or text-segment hashing; no authenticated custody | Verify JSON CI; implement remaining declared checks independently |
@@ -56,3 +56,7 @@ PNG structural checks are now executed on actual synthetic RGB/RGBA PNG raster b
 ## Implementation update — XLSX required sheets (latest CI pending)
 
 Bounded ZIP/XML XLSX parsing now checks named worksheets using workbook relationships and ZIP CRCs. The five added synthetic scenarios increase the expected adversarial matrix to **89 cases** (41 violations, 10 clean local examples, 38 abstentions). CI on the final SHA is still pending; XLSX columns and spreadsheet semantics remain unimplemented.
+
+## Implementation update — XLSX first-row required columns (latest CI pending)
+
+`xlsx_required_columns` now reads actual local XLSX worksheet row 1, including inline strings and shared-string header references. Missing sheets/headers yield ALERT; formula-derived headers and inaccessible evidence abstain to UNKNOWN. Six new strict-API scenarios grow the expected matrix to **95 cases** (43 known violations, 12 clean local cases, 40 abstentions), pending latest CI. Spreadsheet formulas, row/data completeness and remote receipt remain unverified.
