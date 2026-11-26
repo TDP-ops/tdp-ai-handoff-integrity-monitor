@@ -27,6 +27,7 @@ from test_lot4_json_structure import JSON_CASES, run_json_case
 from test_lot4_wav_structure import WAV_CASES, run_wav_case
 from test_lot4_png_dimensions import PNG_CASES, run_png_case
 from test_lot4_xlsx_sheets import XLSX_CASES, run_xlsx_case
+from test_lot4_xlsx_columns import COLUMN_CASES, run_xlsx_column_case
 from handoff_monitor import compare_handoff_validated, compare_journey_validated
 
 
@@ -137,11 +138,15 @@ def run():
         rows.append({"case": name, "truth": truth,
                      "verdict": run_xlsx_case(name)["verdict"]})
 
+    for name, truth, _expected in COLUMN_CASES:
+        rows.append({"case": name, "truth": truth,
+                     "verdict": run_xlsx_column_case(name)["verdict"]})
+
     report = score_rows(rows)
     print(json.dumps(report, indent=2, sort_keys=True))
-    expected = {"TP": 41, "FP": 0, "FN": 0, "TN": 10,
+    expected = {"TP": 43, "FP": 0, "FN": 0, "TN": 12,
                 "unknown_violation": 0, "unknown_clean": 0,
-                "abstentions_unscored": 38}
+                "abstentions_unscored": 40}
     assert report["counts"] == expected, report["counts"]
     return 0
 
