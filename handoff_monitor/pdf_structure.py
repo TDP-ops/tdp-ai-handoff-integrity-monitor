@@ -64,8 +64,9 @@ def _objects(raw):
                 if ref in xrefs:
                     raise ValueError("Duplicate xref object")
                 xrefs[ref] = int(entry.group(1))
+    cursor += len(raw[cursor:].split(b"<<", 1)[0])
     trailer_end = raw.find(b">>", cursor)
-    if trailer_end < 0 or raw[cursor:cursor + 2].strip() != b"<<":
+    if trailer_end < 0 or raw[cursor:cursor + 2] != b"<<":
         raise ValueError("Invalid PDF trailer dictionary")
     trailer = raw[cursor:trailer_end + 2]
     if any(token in trailer for token in (b"/Encrypt", b"/Prev", b"/XRefStm")):
