@@ -105,3 +105,9 @@ Expected extended benchmark: **101 cases** (45 known violations, 13 locally clea
 After the owner-confirmed green CI of `2bdbda3` (DOCX), the engine now supports `pdf_min_pages` on a narrow, bounded classic-xref PDF 1.x subset. It follows the actual `/Root` and `/Pages` tree and checks child/parent references and declared counts. Unsupported PDF variants abstain; a supported document below its required minimum raises `ALERT`. Five synthetic fixtures cover compliant/insufficient page trees and invalid or missing evidence.
 
 Expected score: **106 synthetic cases** (46 known violations, 14 clean local observations, 46 abstentions). **CI for the newest commit remains to be confirmed.** `pdf_required_page_sha256`, modern PDF variants, document quality metrics and authenticated custody remain unimplemented. **Lot 4 Exit Gate OPEN.**
+
+## Implementation update — pinned raw PDF page stream (CI pending)
+
+The owner confirmed CI green for the preceding PDF xref syntax fix `c5b1bc2`. The engine now implements a **bounded raw unfiltered PDF page-stream fingerprint** under pinned extractor ID `tdp-pdf-simple-page-stream-sha256-v1`. Six synthetic tests examine identical content, changed content, missing page, unsupported compressed stream, mismatched extractor ID, and missing receiver evidence. The SHA-256 binds the directly declared page MediaBox and raw unfiltered stream bytes; it is **not** a rendered page, semantic-text or general PDF fidelity check.
+
+Expected matrix: **112 synthetic cases** (48 known violations, 15 clean local controls, 49 abstentions), **CI for the final SHA not confirmed yet**. Complex PDF layouts, independent custody and other original Lot 4 requirements remain unverified. **Exit Gate OPEN.**
