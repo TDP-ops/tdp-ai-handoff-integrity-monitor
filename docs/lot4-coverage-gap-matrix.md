@@ -1,5 +1,14 @@
 # Lot 4 — Coverage and remaining evidence matrix
 
+## Exit Gate audit — 2026-11-26
+
+- **Last complete evidence verified:** GitHub Actions `30009d2` succeeded. Raw job logs show 235 passing unit tests, 133 synthetic scenarios, TP=55, FP=0, FN=0, TN=19, and 59 excluded `UNKNOWN` abstentions; these are **not production statistics**.
+- **Blocking contractual gap:** `text_required_segment_sha256` remains declared but unimplemented; no real-text extracted-segment fixture establishes its detection capability.
+- **Blocking planned scenario gap:** forks/joins and out-of-order/retry semantics remain outside the linear journey engine, with no executable adversarial oracle or separate scope decision.
+- **Format scope:** checks do exist on narrow PNG/PDF/DOCX/PCM WAV/CSV/XLSX/SQLite/JSON subsets. No proof of complete format, semantic, or production accuracy coverage.
+- **Correct allocation:** independent custody, authenticated reference/policy provenance and remote receiver evidence are Lot 5, not a prerequisite to *local* Lot 4 validation. Hugging Face demonstration remains Lot 6.
+- **Decision:** Lot 4 Exit Gate stays **OPEN**. Next: text-segment extractor and executable graph/ordering acceptance tests or explicitly authorized V0 deferral, followed by a final review.
+
 Status: **gap inventory, not an Exit Gate approval**  
 Date: 2026-11-25  
 Last owner-confirmed green commit: `9c17511cb375f76336579b79f3177939a459fbcf`.
