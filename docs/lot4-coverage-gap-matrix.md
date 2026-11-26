@@ -12,7 +12,7 @@ The original project plan calls for adversarial tests across image, PDF, DOCX, a
 | Contract, rules, event identity, versions | Selected adversarial strict-API tests | Exhaustive state space; semantic equivalence of content | Add narrowly scoped rejection/transformation and version-transition tests with explicit ground truth |
 | Linear handoff A→B→C | Missing hop, replay, dropped artifact and coherent-journey UNKNOWN | Forks, joins, retry ordering, concurrent/out-of-order events | Define a separate graph model and acceptance criteria before testing or claiming support |
 | Replacement | Five invalid replacement cases; valid declared replacement remains UNKNOWN | Independent authorization and source authenticity | Extend rejection/transform cases under current V0; authenticated grant checks remain lot 5 |
-| Image | `image_min_dimensions` declaration causes UNKNOWN; SSIM/blur declarations cause UNKNOWN | Real decoding, dimensions, SSIM, blur detection | Valid synthetic images, deterministic extractor/metric implementation, true positive/negative tests |
+| Image | Real PNG RGB/RGBA 8-bit dimension checks (signature, chunks/CRC, bounded raster) with positive/negative/abstention fixtures; latest CI pending | No other image formats, SSIM, blur, visual semantics or authenticated custody | Validate CI; implement remaining quality metrics and formats against real fixtures |
 | PDF | `pdf_min_pages` declaration causes UNKNOWN | Actual page count, page SHA-256 extraction | Controlled valid PDFs, parser reference, positive/negative cases |
 | DOCX | Required paragraph SHA declaration causes UNKNOWN | Paragraph extraction and deterministic canonicalization | Valid DOCX fixtures, algorithm/extractor versions, counterexamples |
 | CSV | Local UTF-8 header parsing implemented for `csv_required_columns`; valid, absent and malformed header tests (latest CI pending) | Does not establish row completeness, broad dialect support or remote custody | Confirm latest CI and extend supported formats |
@@ -48,3 +48,7 @@ The `json_required_pointer` local checker now reads real JSON data with strict U
 ## Implementation update — PCM WAV measurements (latest CI pending)
 
 Real locally generated uncompressed PCM WAV fixtures now exercise duration and sample-rate thresholds, incomplete samples and missing recipient observations. No audio decoding beyond PCM WAV or speech-quality assertion is claimed. Expected synthetic matrix: **79 cases** (39 violations, 8 clean local observations, 32 abstentions); these values are not confirmed until the newest GitHub Actions SHA is green.
+
+## Implementation update — PNG dimensions (latest CI pending)
+
+PNG structural checks are now executed on actual synthetic RGB/RGBA PNG raster bytes, with checks for dimensions, CRC integrity, missing pixel data, unsupported variants, and missing receiver observations. Expected score: **84 synthetic cases** (40 known violations, 9 clean local examples, 35 abstentions); the most recent SHA still requires CI confirmation. This does not constitute broader image verification or perceptual quality measurement.
