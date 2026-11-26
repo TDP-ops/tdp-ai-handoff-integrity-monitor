@@ -45,3 +45,44 @@ def blur_score_ratio(reference_path, candidate_path):
     if ref_num == 0 and cand_num == 0:
         raise ValueError("Both images lack measurable Laplacian variance")
     return ref_num, ref_den, cand_num, cand_den
+
+
+SSIM_ALGORITHM_ID = "ssim-skimage-v1"
+
+
+def local_ssim(reference_path, candidate_path):
+    """Pinned scikit-image grayscale SSIM over aligned RGB8 PNG rasters.
+
+    Mandatory configuration: scikit-image 0.26.0, NumPy 2.3.5,
+    SciPy 1.16.3; win_size=7, gaussian_weights=False,
+    use_sample_covariance=True, channel_axis=None, data_range=255.
+    The input is the same BT.601 integer grayscale as the blur metric.
+    Runtime libraries are optional; absent or incompatible versions abstain.
+    """
+    try:
+        import numpy as np
+        import scipy
+        import skimage
+        from skimage.metrics import structural_similarity
+    except ImportError as error:
+        raise ValueError("Pinned SSIM libraries unavailable") from error
+    if (np.__version__ != "2.3.5" or scipy.__version__ != "1.16.3"
+            or skimage.__version__ != "0.26.0"):
+        raise ValueError("Unverified SSIM numerical runtime versions")
+    rw, rh, rp = png_grayscale_pixels(reference_path)
+    cw, ch, cp = png_grayscale_pixels(candidate_path)
+    if (rw, rh) != (cw, ch) or min(rw, rh) < 7:
+        raise ValueError("SSIM requires matching at least 7x7 rasters")
+    ref = np.asarray(rp, dtype=np.uint8).reshape((rh, rw))
+    cand = np.asarray(cp, dtype=np.uint8).reshape((ch, cw))
+    score = float(structural_similarity(
+        ref, cand,
+        win_size=7,
+        gaussian_weights=False,
+        use_sample_covariance=True,
+        data_range=255,
+        channel_axis=None,
+    ))
+    if not np.isfinite(score) or score < -1 or score > 1:
+        raise ValueError("Undefined SSIM measurement")
+    return score
