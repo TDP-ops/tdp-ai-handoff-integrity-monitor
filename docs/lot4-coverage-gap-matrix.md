@@ -15,7 +15,7 @@ The original project plan calls for adversarial tests across image, PDF, DOCX, a
 | Image | `image_min_dimensions` declaration causes UNKNOWN; SSIM/blur declarations cause UNKNOWN | Real decoding, dimensions, SSIM, blur detection | Valid synthetic images, deterministic extractor/metric implementation, true positive/negative tests |
 | PDF | `pdf_min_pages` declaration causes UNKNOWN | Actual page count, page SHA-256 extraction | Controlled valid PDFs, parser reference, positive/negative cases |
 | DOCX | Required paragraph SHA declaration causes UNKNOWN | Paragraph extraction and deterministic canonicalization | Valid DOCX fixtures, algorithm/extractor versions, counterexamples |
-| CSV | Required columns declaration causes UNKNOWN | CSV parsing, header normalization, dialect/encoding handling | Valid CSV fixtures with/without columns and agreed parsing policy |
+| CSV | Local UTF-8 header parsing implemented for `csv_required_columns`; valid, absent and malformed header tests (latest CI pending) | Does not establish row completeness, broad dialect support or remote custody | Confirm latest CI and extend supported formats |
 | XLSX | Required sheets declaration causes UNKNOWN | Workbook/sheet/column parsing | Valid XLSX fixtures, deterministic parsing, edge cases |
 | DB schema | Foreign-key requirement declaration causes UNKNOWN | Schema/catalog comparison and dialect differences | Canonical schema snapshots, supported dialect definition, positive/negative cases |
 | Audio | Duration/sample-rate declarations cause UNKNOWN | Audio decoding, duration/rate determination | Valid synthetic audio fixtures and decoder implementation |
@@ -36,3 +36,7 @@ The original project plan calls for adversarial tests across image, PDF, DOCX, a
 5. Approve the final Exit Gate only after either (a) evidence satisfies the original agreed scope or (b) a conscious, documented re-scope is authorized; a green CI alone is insufficient.
 
 No vendor service, external data transfer, or paid dependency is introduced by this inventory.
+
+## Implementation update — local CSV headers (latest CI pending)
+
+The local CSV extractor checks required header names in caller-supplied sender and receiver files. The new fixtures cover correct headers, missing columns, duplicate names, invalid UTF-8 and missing receiver paths. Results concern observed local structure, not authenticated custody. The expanded benchmark expects **68 synthetic cases** (36 violations, 5 clean, 27 abstentions); final CI verification is pending. Other format-specific extractors remain unavailable.
