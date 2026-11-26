@@ -180,7 +180,8 @@ def check_structure(kind, checks, sender_path, receiver_path, artifact_id):
                                ("pdf", "pdf_required_page_sha256"),
                                ("db_schema", "db_required_table"),
                                ("db_schema", "db_required_column"),
-                               ("db_schema", "db_required_foreign_key")):
+                               ("db_schema", "db_required_foreign_key"),
+                               ("text", "text_required_segment_sha256")):
             issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
                                   "Structure extractor not implemented"))
             continue
@@ -243,6 +244,21 @@ def check_structure(kind, checks, sender_path, receiver_path, artifact_id):
                     issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
                                           role + " XLSX missing columns: " +
                                           ", ".join(sorted(missing))))
+            elif typ == "text_required_segment_sha256":
+                from .text_structure import TEXT_EXTRACTOR_ID, text_line_hash
+                if check["extractor_id"] != TEXT_EXTRACTOR_ID:
+                    issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
+                                          "Text extractor ID not supported"))
+                    continue
+                try:
+                    observed = text_line_hash(path, check["segment_locator"])
+                except (OSError, UnicodeError, ValueError, OverflowError, MemoryError):
+                    issues.append(finding("UNVERIFIABLE", "UNKNOWN", artifact_id,
+                                          role + " text segment cannot be extracted"))
+                    continue
+                if observed != check["extracted_segment_sha256"]:
+                    issues.append(finding("MISSING_REQUIRED_RULE", "ALERT", artifact_id,
+                                          role + " required text segment absent or modified"))
             elif typ == "docx_required_paragraph_sha256":
                 from .docx_structure import DOCX_EXTRACTOR_ID, docx_paragraph_hash
                 if check["extractor_id"] != DOCX_EXTRACTOR_ID:
