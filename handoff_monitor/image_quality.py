@@ -1,0 +1,47 @@
+"""Bounded local image-quality metrics with explicit reference evidence.
+
+Only RGB8 PNG rasters decoded by image_structure are supported. All image
+observations are caller-supplied local paths, NOT independently authenticated.
+"""
+from .image_structure import png_grayscale_pixels
+
+def _laplacian_variance(width, height, pixels):
+    """Population variance of the 4-neighbor Laplacian on interior pixels.
+
+    Pixels are BT.601 integer grayscale 0..255; boundaries are excluded.
+    The versioned convention uses central coefficient +4, neighbor -1 and
+    population variance, with no clipping, rescaling or normalization.
+    """
+    if width < 3 or height < 3 or len(pixels) != width * height:
+        raise ValueError("Insufficient raster for Laplacian variance")
+    count = (width - 2) * (height - 2)
+    sum_value = 0
+    sum_squares = 0
+    for y in range(1, height - 1):
+        for x in range(1, width - 1):
+            at = y * width + x
+            value = (4 * pixels[at] - pixels[at - width]
+                     - pixels[at + width] - pixels[at - 1]
+                     - pixels[at + 1])
+            sum_value += value
+            sum_squares += value * value
+    # Exact nonnegative numerator scaled by count^2.
+    return sum_squares * count - sum_value * sum_value, count * count
+
+
+def blur_score_ratio(reference_path, candidate_path):
+    """Return reference/candidate focus variance ratio as two integer pairs.
+
+    Comparison avoids floats and undefined zero-variance division. All input
+    image dimensions must match exactly. The caller applies a chosen ratio
+    threshold; this helper does not choose a policy value.
+    """
+    rw, rh, rp = png_grayscale_pixels(reference_path)
+    cw, ch, cp = png_grayscale_pixels(candidate_path)
+    if (rw, rh) != (cw, ch):
+        raise ValueError("Unaligned raster dimensions")
+    ref_num, ref_den = _laplacian_variance(rw, rh, rp)
+    cand_num, cand_den = _laplacian_variance(cw, ch, cp)
+    if ref_num == 0 and cand_num == 0:
+        raise ValueError("Both images lack measurable Laplacian variance")
+    return ref_num, ref_den, cand_num, cand_den
