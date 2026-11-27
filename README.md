@@ -17,7 +17,7 @@ A deterministic integrity monitor for multi-agent AI handoffs. Its objective is 
 
 ## Project status
 
-**Lot 3 — deterministic engine implemented and being validated; Exit Gate not yet approved.** This is a synthetic/local verification engine, not a production-ready authenticated end-to-end receipt system. The comparator can verify caller-provided local bytes and flag manifest and contract inconsistencies, but it cannot independently prove that a remote AI agent received an artifact.
+**Lots 1–4 completed for the bounded V0 local/synthetic scope; Lot 5 (independent receiver evidence) remains pending.** The deterministic engine has a verified 155-case synthetic adversarial evaluation and an opt-in DAG mode with bounded declared retries. This is **not** a production-ready authenticated end-to-end receipt system. The comparator can verify caller-provided local bytes and flag manifest and contract inconsistencies, but it cannot independently prove that a remote AI agent received an artifact.
 
 Schema-first public Python entrypoints (recommended for untrusted manifest input):
 
@@ -30,7 +30,7 @@ journey = compare_journey_validated(plan, [{"sent": sent, "received": received}]
 
 `jsonschema==4.23.0` is required to call these validated entrypoints (installed by the repository CI). `compare_handoff` and `compare_journey` remain available for callers that separately enforce the canonical schema; **do not use them directly with untrusted manifests**. The `PASS` verdict of a local single-handoff byte check is not proof of independent remote receiver custody, and a coherent multi-hop journey remains `UNKNOWN` without that proof. Validated API input checks also do not authenticate caller-supplied histories, policy grants or file paths.
 
-See [Lot 3 implementation and open limitations](docs/lot3-engine-initial.md) and [canonical JSON Schema](schemas/handoff-v0.schema.json).
+See [Lot 4 scoped Exit Gate](docs/lot4-exit-gate.md), [Lot 3 implementation boundaries](docs/lot3-engine-initial.md) and [canonical JSON Schema](schemas/handoff-v0.schema.json).
 
 The planned development sequence is:
 1. Contract and schema definition
