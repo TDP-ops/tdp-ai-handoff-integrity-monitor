@@ -72,8 +72,11 @@ def compare_handoff_with_custody(
         artifact = by_id.get(aid)
         receipt = receipts.get(aid)
         sender_path = sender_files.get(aid)
-        if artifact is None or receipt is None or sender_path is None:
+        if artifact is None or receipt is None:
             results[aid] = {"status": "UNKNOWN", "reason": "required_evidence_missing"}
+            continue
+        if sender_path is None:
+            results[aid] = {"status": "UNKNOWN", "reason": "sender_bytes_unavailable"}
             continue
         try:
             sha, size = observe_file(sender_path)
