@@ -40,6 +40,8 @@ class ReceiverAdapterTests(unittest.TestCase):
 
     def expected(self):
         return dict(
+            receiver_id="B",
+            content_sha256=hashlib.sha256(self.file.read_bytes()).hexdigest(),
             run_id=self.plan["run_id"], handoff_id=self.sent["handoff_id"],
             contract_id=self.sent["contract_id"],
             contract_version=self.sent["contract_version"],
