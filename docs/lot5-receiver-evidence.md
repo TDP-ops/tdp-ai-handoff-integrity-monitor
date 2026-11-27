@@ -30,6 +30,15 @@ An optional caller-supplied `seen_receipt_ids` set checks local replay claims, b
 
 **Current Exit Gate: OPEN.** Next must demonstrate independent verifier/receiver execution, authenticated key provisioning and separation, concurrency/restart handling, revocation semantics, and integration of validated receipt evidence with the main handoff verdict without upgrading a locally measured PASS into remote authenticity.
 
+### Tranche 3 — custody result integration and separate-process simulation (27 November 2026)
+
+- `handoff_monitor/custody.py` adds `compare_handoff_with_custody`, which **separately reports** the original schema-validated local integrity verdict, per-artifact signed receipt results, and `custody_status`. It derives the expected run/contract/attempt/artefact details from validated manifests, but **requires the receiver identity to be pinned separately** and hashes the sender-observed bytes for an independent expected SHA-256 and size. A local `ALERT` is never overridden by a receipt. A missing or untrusted receipt remains `UNKNOWN`. A verified signature may produce `custody_status=VERIFIED_SIGNATURES`, but the combined verdict deliberately remains **`UNKNOWN`**, not an authenticated remote-delivery `PASS`.
+- `tests/test_lot5_custody.py` exercises valid signatures, tampering, wrong receiver, replays, missing sender bytes or receipts, and the precedence of local integrity alarms over signed observations.
+- `tests/test_lot5_separate_processes.py` uses two distinct Python OS processes: the receiver subprocess generates and holds its ephemeral private key and signs actual synthetic file bytes; the verification process registers the public key, verifies the signed receipt, rejects its replay and retains the conservative `UNKNOWN` end-to-end verdict. This proves **process-level separation only**, not an external deployment or an independently authenticated key enrollment.
+- **Risks remaining:** the test harness conveys the test public key; actual public-key ownership is not independently certified. There is no protected cross-host transfer, independently attested policy grant, external key provisioning, identity lifecycle service, or trusted event timestamp. The registry and private-key storage must run with real separate operational permissions before the signed record can substantiate receiver identity.
+
+**Lot 5 Exit Gate stays OPEN** until real independent receiver/verifier execution and safe key enrollment/authorization can be verified. The user should not need to provision any account, hosted service or production keys for this synthetic implementation.
+
 ### Next Lot 5 work (based on original plan)
 
 1. Define and test a receiver-boundary adapter invoking this primitive **on the actual recipient**, with separately trusted sender/receiver identities and key provisioning.
