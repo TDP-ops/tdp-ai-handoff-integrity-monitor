@@ -111,7 +111,7 @@ def verify_receiver_receipt(receipt, *, trusted_public_keys, expected,
     The trusted registry and expected context are owned by the verifier.
     """
     try:
-        _, _, PublicKey = _crypto()
+        InvalidSignature, _, PublicKey = _crypto()
     except RuntimeError:
         return {"status": "UNKNOWN", "reason": "crypto_runtime_unavailable"}
     if not isinstance(receipt, dict) or set(receipt) != {"body", "signature"}:
@@ -151,7 +151,7 @@ def verify_receiver_receipt(receipt, *, trusted_public_keys, expected,
     try:
         public_key = PublicKey.from_public_bytes(key)
         public_key.verify(signature, payload)
-    except (ValueError, TypeError, Exception) as error:
+    except (InvalidSignature, ValueError, TypeError):
         # Includes cryptography InvalidSignature, but do not reveal key details.
         return {"status": "ALERT", "reason": "invalid_signature"}
     if observed_file is not None:
