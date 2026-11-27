@@ -6,6 +6,8 @@ producer never enrolls keys or writes this registry. The SQLite file itself
 must be protected by the verifier's host and access controls.
 """
 import os
+import hashlib
+import hmac
 import sqlite3
 from pathlib import Path
 
@@ -69,6 +71,26 @@ class ReceiverTrustRegistry:
                 or not isinstance(key_id, str) or not IDENTIFIER.fullmatch(key_id)
                 or not isinstance(public_key, bytes) or len(public_key) != 32):
             raise ValueError("Invalid independently provisioned public key")
+
+    def enroll_pinned_key(self, *, receiver_id, key_id, public_key,
+                          independently_expected_sha256):
+        """Verifier-side out-of-band fingerprint check before enrollment.
+
+        independently_expected_sha256 MUST come from a separately controlled
+        verifier policy or manually verified channel, never from the receipt
+        or an untrusted enrollment request. This is not a CA or remote proof.
+        """
+        self._key_identity(receiver_id, key_id, public_key)
+        if (not isinstance(independently_expected_sha256, str)
+                or len(independently_expected_sha256) != 64
+                or any(c not in "0123456789abcdef"
+                       for c in independently_expected_sha256)):
+            raise ValueError("Invalid independently pinned key digest")
+        observed = hashlib.sha256(public_key).hexdigest()
+        if not hmac.compare_digest(observed, independently_expected_sha256):
+            raise ValueError("Public key does not match verifier-side pin")
+        self.enroll_key(receiver_id=receiver_id, key_id=key_id,
+                        public_key=public_key)
 
     def enroll_key(self, *, receiver_id, key_id, public_key):
         """Privileged administration only: explicit immutable key enrollment."""
