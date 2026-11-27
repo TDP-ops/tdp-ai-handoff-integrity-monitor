@@ -36,6 +36,7 @@ from test_lot4_image_blur import BLUR_CASES, run_blur_case
 from test_lot4_image_ssim import SSIM_CASES, run_ssim_case
 from test_lot4_text_segments import TEXT_CASES, run_text_case
 from test_lot4_dag_journey import DAG_CASES, run_dag_case
+from test_lot4_dag_retries import RETRY_CASES, run_retry_case
 from handoff_monitor import compare_handoff_validated, compare_journey_validated
 
 
@@ -182,11 +183,15 @@ def run():
         rows.append({"case": name, "truth": truth,
                      "verdict": run_dag_case(name)["verdict"]})
 
+    for name, truth, _expected in RETRY_CASES:
+        rows.append({"case": name, "truth": truth,
+                     "verdict": run_retry_case(name)["verdict"]})
+
     report = score_rows(rows)
     print(json.dumps(report, indent=2, sort_keys=True))
-    expected = {"TP": 63, "FP": 0, "FN": 0, "TN": 20,
+    expected = {"TP": 69, "FP": 0, "FN": 0, "TN": 20,
                 "unknown_violation": 0, "unknown_clean": 0,
-                "abstentions_unscored": 64}
+                "abstentions_unscored": 66}
     assert report["counts"] == expected, report["counts"]
     return 0
 
