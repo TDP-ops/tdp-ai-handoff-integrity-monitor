@@ -77,8 +77,13 @@ class SeparateProcessEvidenceTests(unittest.TestCase):
             registry = ReceiverTrustRegistry(directory / "verifier.sqlite")
             # Test harness pins key in verifier domain: production onboarding
             # must authenticate this independently, not from the receipt.
-            registry.enroll_key(receiver_id="B", key_id="K-SYNTH",
-                                public_key=public_key)
+            # In this synthetic fixture, the verifier-side pin is a separately
+            # recorded expected fingerprint. Actual independent enrollment is
+            # an operational precondition, NOT proven by this test harness.
+            verifier_policy_pin = hashlib.sha256(public_key).hexdigest()
+            registry.enroll_pinned_key(
+                receiver_id="B", key_id="K-SYNTH", public_key=public_key,
+                independently_expected_sha256=verifier_policy_pin)
             outcome = compare_handoff_with_custody(
                 plan, sent, received,
                 sender_files={"ART-001": sender},
