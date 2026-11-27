@@ -30,7 +30,7 @@ journey = compare_journey_validated(plan, [{"sent": sent, "received": received}]
 
 `jsonschema==4.23.0` is required to call these validated entrypoints (installed by the repository CI). `compare_handoff` and `compare_journey` remain available for callers that separately enforce the canonical schema; **do not use them directly with untrusted manifests**. The `PASS` verdict of a local single-handoff byte check is not proof of independent remote receiver custody, and a coherent multi-hop journey remains `UNKNOWN` without that proof. Validated API input checks also do not authenticate caller-supplied histories, policy grants or file paths.
 
-See [Lot 4 scoped Exit Gate](docs/lot4-exit-gate.md), [Lot 3 implementation boundaries](docs/lot3-engine-initial.md) and [canonical JSON Schema](schemas/handoff-v0.schema.json).
+Lot 5 has begun with a standalone, cryptographically signed receiver-side receipt primitive; **this does not yet establish authenticated end-to-end custody**. See [Lot 5 receiver evidence and trust boundary](docs/lot5-receiver-evidence.md) and [Lot 4 scoped Exit Gate](docs/lot4-exit-gate.md), [Lot 3 implementation boundaries](docs/lot3-engine-initial.md) and [canonical JSON Schema](schemas/handoff-v0.schema.json).
 
 The planned development sequence is:
 1. Contract and schema definition
