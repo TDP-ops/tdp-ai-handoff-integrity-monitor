@@ -1,8 +1,9 @@
 """Opt-in DAG handoff comparison on explicit contract edges.
 
 This is not a retry event store, graph scheduler, or remote custody system.
-Each declared edge must have exactly one observed handoff. Out-of-order
-presentation is accepted; duplicate/retry attempts are rejected explicitly.
+Each declared edge has one accepted outcome; bounded retries are permitted only
+with explicit, consecutive attempt identities and immutable payload identity.
+Input presentation order is not the causal attempt order.
 """
 from collections import defaultdict, deque
 
@@ -60,6 +61,7 @@ def compare_dag_journey(plan, handoffs, *, file_evidence=None):
             issues.append(finding("CONTRACT_MISMATCH", "ALERT",
                                   explanation="DAG contains disconnected components"))
 
+    attempts_by_edge = defaultdict(list)
     observed_edges, observed_events, observed_handoffs = {}, set(), set()
     evidence = file_evidence or {}
     for hop in handoffs:
@@ -75,11 +77,7 @@ def compare_dag_journey(plan, handoffs, *, file_evidence=None):
                     contract["contract_id"], contract["version"]):
                 issues.append(finding("CONTRACT_MISMATCH", "ALERT",
                                       explanation="DAG edge contract mismatch"))
-        if edge in observed_edges:
-            issues.append(finding("DUPLICATE_OR_UNEXPECTED", "ALERT",
-                                  explanation="Repeated DAG edge or ambiguous retry"))
-        else:
-            observed_edges[edge] = hop
+        attempts_by_edge[edge].append(hop)
         if key[1] in observed_handoffs:
             issues.append(finding("DUPLICATE_OR_UNEXPECTED", "ALERT",
                                   explanation="Reused DAG handoff ID"))
@@ -95,6 +93,72 @@ def compare_dag_journey(plan, handoffs, *, file_evidence=None):
             plan, sent, received,
             sender_files=supplied.get("sender_files"),
             receiver_files=supplied.get("receiver_files")))
+
+    # Explicitly declared retry policy is a caller claim, not authenticated
+    # approval. For the bounded local gate it can remove duplicate-edge
+    # alerts, but the overall DAG result still cannot be PASS.
+    for edge, attempts in attempts_by_edge.items():
+        if edge not in by_edge:
+            continue
+        contract = by_edge[edge]
+        permitted = contract.get("max_attempts", 1)
+        if len(attempts) > permitted:
+            issues.append(finding("DUPLICATE_OR_UNEXPECTED", "ALERT",
+                                  explanation="DAG edge retry count exceeds declared limit"))
+        indexed = {}
+        for hop in attempts:
+            sent, received = hop["sent"], hop["received"]
+            number = sent.get("attempt_number")
+            previous_id = sent.get("retry_of_handoff_id")
+            if (number != received.get("attempt_number")
+                    or previous_id != received.get("retry_of_handoff_id")):
+                issues.append(finding("CONTRACT_MISMATCH", "ALERT",
+                                      explanation="Retry metadata differs across roles"))
+            if number is None and len(attempts) == 1 and previous_id is None:
+                number = 1  # Existing single-edge V0 DAG manifests remain valid.
+            if (type(number) is not int or number < 1 or
+                    number in indexed or (number > 1 and previous_id is None)
+                    or (number == 1 and previous_id is not None)):
+                issues.append(finding("DUPLICATE_OR_UNEXPECTED", "ALERT",
+                                      explanation="Missing, repeated or invalid retry attempt"))
+                continue
+            indexed[number] = hop
+        if set(indexed) != set(range(1, len(attempts) + 1)):
+            issues.append(finding("DUPLICATE_OR_UNEXPECTED", "ALERT",
+                                  explanation="Retry sequence missing attempt or ambiguous order"))
+            continue
+        for number in range(2, len(attempts) + 1):
+            prior = indexed[number - 1]["sent"]["handoff_id"]
+            if indexed[number]["sent"].get("retry_of_handoff_id") != prior:
+                issues.append(finding("DUPLICATE_OR_UNEXPECTED", "ALERT",
+                                      explanation="Retry predecessor handoff mismatch"))
+        # Replay must not silently alter the original payload or obligations.
+        first = indexed[1]["sent"]
+        baseline = _items(first)
+        if baseline is None:
+            issues.append(finding("DUPLICATE_OR_UNEXPECTED", "ALERT",
+                                  explanation="Invalid original retry payload"))
+        else:
+            baseline_view = {aid: (
+                a.get("artifact_version_id"), a.get("content_sha256"),
+                a.get("required"), a.get("kind"), a.get("checks"),
+                a.get("parent_version_ids"), a.get("derived_from_artifact_ids"),
+                a.get("replaces_artifact_id"))
+                for aid, a in baseline.items()}
+            for number in range(2, len(attempts) + 1):
+                for role in ("sent", "received"):
+                    current = _items(indexed[number][role])
+                    view = None if current is None else {aid: (
+                        a.get("artifact_version_id"), a.get("content_sha256"),
+                        a.get("required"), a.get("kind"), a.get("checks"),
+                        a.get("parent_version_ids"), a.get("derived_from_artifact_ids"),
+                        a.get("replaces_artifact_id"))
+                        for aid, a in current.items()}
+                    if view != baseline_view:
+                        issues.append(finding("ARTIFACT_ID_COLLISION", "ALERT",
+                                              explanation="Retry changed artifact identity or obligations"))
+        # Only final declared attempt supplies downstream fork/join inventory.
+        observed_edges[edge] = indexed[len(attempts)]
 
     for edge in by_edge.keys() - observed_edges.keys():
         issues.append(finding("CONTRACT_MISMATCH", "ALERT",
