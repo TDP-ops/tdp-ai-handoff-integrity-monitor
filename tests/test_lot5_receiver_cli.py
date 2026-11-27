@@ -79,12 +79,12 @@ class ReceiverVerifierCliTests(unittest.TestCase):
             "receiver-init", "--private-key", self.private,
             "--public-key", self.public)
 
-    def enroll(self, pin):
+    def enroll(self, pin, *, success=True):
         return self.cli(
             "verifier-enroll", "--registry", self.db,
             "--public-key", self.public,
             "--receiver-id", "B", "--key-id", "KEY1",
-            "--approved-fingerprint", pin)
+            "--approved-fingerprint", pin, success=success)
 
     def sign(self):
         return self.cli(
@@ -122,7 +122,7 @@ class ReceiverVerifierCliTests(unittest.TestCase):
 
     def test_wrong_preapproved_pin_cannot_enroll(self):
         self.initialize()
-        failure = self.enroll("0" * 64)
+        failure = self.enroll("0" * 64, success=False)
         # Invalid verifier enrollment must not be a success.
         self.assertNotEqual("PINNED_KEY_ENROLLED", failure["status"])
 
