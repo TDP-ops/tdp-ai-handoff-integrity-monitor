@@ -20,6 +20,16 @@ An optional caller-supplied `seen_receipt_ids` set checks local replay claims, b
 - The module is a **standalone first tranche**. It is not yet wired to `compare_handoff_validated` or `compare_journey_validated` as a remote-custody override.
 - Only synthetic files and ephemeral keys are used in tests; no external agent, network transfer or remote host is involved.
 
+### Tranche 2 — persistent trust registry and receiver-boundary adapter (27 November 2026)
+
+- `handoff_monitor/receiver_registry.py` implements a verifier-controlled **SQLite trust registry**: independent key enrollment, revocation, atomic rotation, and durable uniqueness of accepted receipt IDs and per-`receiver/run/handoff/artifact/attempt` identities. It uses `BEGIN IMMEDIATE` for concurrent SQLite writers, an atomic insert/commit, and refuses to consume an invalid receipt. Newly created files receive restrictive POSIX permissions; production operators must additionally protect directories, backups and host access.
+- `handoff_monitor/receiver_adapter.py` provides `receive_and_sign`, intended to run **inside the actual recipient trust boundary**. It validates the handoff records and contract, reads receiver-local bytes, checks the receiver manifest's declared SHA-256/size against the opened file, and signs a receipt with a receiver-held key. Receipt IDs are randomly generated inside the adapter.
+- The registry now requires an **independently supplied expected receiver ID and expected SHA-256**, in addition to the complete expected run/handoff/attempt context, before atomic acceptance. It cannot derive those facts from the receipt being verified. Without them it abstains to `UNKNOWN`. A valid signed receipt from the wrong receiver or for different bytes must not establish custody.
+- Regression tests `tests/test_lot5_receiver_registry.py` and `tests/test_lot5_receiver_adapter.py` use synthetic bytes and ephemeral keys for restart replay protection, receipt-fork collision, corruption, revoked/rotated key behavior, manifest mismatch, and end-to-end local adapter-to-registry verification.
+- **This remains a simulated local separation**, not evidence that an actual independent remote recipient has deployed the adapter or protected its signing key. No hosted service, actual private key, network receiver, trusted timestamp, production directory or client data has been provisioned.
+
+**Current Exit Gate: OPEN.** Next must demonstrate independent verifier/receiver execution, authenticated key provisioning and separation, concurrency/restart handling, revocation semantics, and integration of validated receipt evidence with the main handoff verdict without upgrading a locally measured PASS into remote authenticity.
+
 ### Next Lot 5 work (based on original plan)
 
 1. Define and test a receiver-boundary adapter invoking this primitive **on the actual recipient**, with separately trusted sender/receiver identities and key provisioning.
