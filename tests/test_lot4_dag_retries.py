@@ -65,7 +65,10 @@ class DagRetryTests(unittest.TestCase):
                 result = run_retry_case(name)
                 codes = {item["code"] for item in result["findings"]}
                 self.assertEqual(expected, result["verdict"])
-                self.assertNotIn("INVALID_MANIFEST", codes)
+                if name == "retry_missing_attempt_index":
+                    self.assertIn("INVALID_MANIFEST", codes)
+                else:
+                    self.assertNotIn("INVALID_MANIFEST", codes)
                 if truth == "violation":
                     self.assertTrue(any(x["verdict"] == "ALERT"
                                         for x in result["findings"]))
