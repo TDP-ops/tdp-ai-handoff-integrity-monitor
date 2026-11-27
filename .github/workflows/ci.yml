@@ -30,6 +30,7 @@ jobs:
           python3 -m venv .venv
           .venv/bin/python -m pip install 'jsonschema==4.23.0'
           .venv/bin/python -m pip install -r requirements-image-ssim.txt
+          .venv/bin/python -m pip install -r requirements-receiver-evidence.txt
       - name: Validate V0 contract schema and fixtures
         run: .venv/bin/python -m unittest discover -s tests -p 'test_*.py' -v
       - name: Measure deterministic-engine line coverage
