@@ -130,6 +130,12 @@ class ReceiverTrustRegistry:
         if not isinstance(receipt, dict) or not isinstance(receipt.get("body"), dict):
             return {"status": "ALERT", "reason": "malformed_receipt"}
         body = receipt["body"]
+        # A registry-level custody claim requires independently pinned
+        # recipient identity and expected sender digest, never inferred from
+        # the signed receipt. Partial context remains UNKNOWN.
+        if (not isinstance(expected, dict)
+                or not {"receiver_id", "content_sha256"}.issubset(expected)):
+            return {"status": "UNKNOWN", "reason": "unbound_receiver_or_digest"}
         try:
             with self._connection() as conn:
                 conn.execute("BEGIN IMMEDIATE")
