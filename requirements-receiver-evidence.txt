@@ -1,0 +1,2 @@
+# Lot 5: optional signed receiver-side evidence adapter. No private key material is stored in this repository.
+cryptography==50.0.2
