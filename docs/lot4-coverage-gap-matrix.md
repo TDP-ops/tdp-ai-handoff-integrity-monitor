@@ -1,3 +1,9 @@
+## Retry acceptance update — 27 November 2026
+
+The opt-in DAG comparator now reconciles **bounded, explicitly declared retries** using contract `max_attempts` (1–5, default 1), event `attempt_number` and `retry_of_handoff_id`. It requires consecutive attempt numbers, linked distinct handoff/event identities, consistent sender/receiver declarations and unchanged artifact identity, hash, version and checks across retries. A valid claim remains `UNKNOWN` without authenticated policy or receiver custody. Replays, ambiguous duplicates, altered payload, excessive retries, missing attempt numbers and wrong predecessors are rejected. The legacy linear mode retains its behavior.
+
+Eight executable synthetic scenarios raise the **expected** matrix to **155** (69 known violations, 20 clean local controls, 66 abstentions), pending latest CI. This is not a distributed retry executor, authenticated sender policy, idempotent delivery proof or durable event store.
+
 ## Lot 4 DAG update — 2026-11-26 (latest CI pending)
 
 The strict validated journey API supports optional `run_plan.journey_mode="dag"` while defaulting to the existing `linear` behavior. Contract edges define a DAG; each edge requires one distinct sender/receiver pair. Synthetic cases exercise unordered observation, missing fork edge, replay, repeated edge/retry, conflict at a join, lost artifact at a fork and cycle detection. **Repeated attempts are rejected as ambiguous**, not reconciled as authorized retries. Expected extended suite: **147** synthetic cases (63 known violations, 20 clean local observations, 64 abstentions). The CI for the final SHA remains to be verified. Authenticated evidence is still a separate Lot 5 responsibility.
