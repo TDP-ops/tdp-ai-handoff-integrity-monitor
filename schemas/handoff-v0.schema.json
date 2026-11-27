@@ -625,6 +625,13 @@
           },
           "uniqueItems": true,
           "default": []
+        },
+        "max_attempts": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "default": 1,
+          "description": "DAG-only maximum number of attempts on this contract edge; default 1 disallows retries."
         }
       }
     },
@@ -693,8 +700,32 @@
           "items": {
             "$ref": "#/$defs/lifecycle"
           }
+        },
+        "attempt_number": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "DAG attempt sequence number; 1 for the original observation."
+        },
+        "retry_of_handoff_id": {
+          "$ref": "#/$defs/identifier",
+          "description": "On a DAG retry, the immediately preceding attempt's handoff ID."
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "retry_of_handoff_id"
+            ]
+          },
+          "then": {
+            "required": [
+              "attempt_number"
+            ]
+          }
+        }
+      ]
     },
     "lifecycle": {
       "type": "object",
