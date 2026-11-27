@@ -129,6 +129,46 @@ class DurableRegistryTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             ReceiverTrustRegistry(alias)
 
+    def test_out_of_band_pin_rejects_substituted_key(self):
+        from hashlib import sha256
+        valid = Ed25519PrivateKey.generate()
+        attacker = Ed25519PrivateKey.generate()
+        pin = sha256(raw_public(valid)).hexdigest()
+        with self.assertRaisesRegex(ValueError, "does not match"):
+            self.registry.enroll_pinned_key(
+                receiver_id="B", key_id="K2",
+                public_key=raw_public(attacker),
+                independently_expected_sha256=pin)
+        self.registry.enroll_pinned_key(
+            receiver_id="B", key_id="K2",
+            public_key=raw_public(valid),
+            independently_expected_sha256=pin)
+
+    def test_receipt_cannot_supply_enrollment_authority(self):
+        from hashlib import sha256
+        attacker = Ed25519PrivateKey.generate()
+        false_pin = sha256(raw_public(self.private)).hexdigest()
+        with self.assertRaises(ValueError):
+            self.registry.enroll_pinned_key(
+                receiver_id="B", key_id="K-UNTRUSTED",
+                public_key=raw_public(attacker),
+                independently_expected_sha256=false_pin)
+        with self.registry._connection() as connection:
+            rows = connection.execute(
+                "SELECT count(*) FROM trusted_keys WHERE key_id=?",
+                ("K-UNTRUSTED",)).fetchone()[0]
+        self.assertEqual(0, rows)
+
+    def test_invalid_pinned_digest_fail_closed(self):
+        public_key = raw_public(Ed25519PrivateKey.generate())
+        for bad in ("", "0" * 63, "z" * 64, None):
+            with self.subTest(pin=bad):
+                with self.assertRaises(ValueError):
+                    self.registry.enroll_pinned_key(
+                        receiver_id="B", key_id="K-BAD",
+                        public_key=public_key,
+                        independently_expected_sha256=bad)
+
     def test_key_enrollment_identity_is_immutable(self):
         with self.assertRaises(Exception):
             self.registry.enroll_key(receiver_id="B", key_id="K1",
