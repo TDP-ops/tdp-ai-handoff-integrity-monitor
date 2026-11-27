@@ -1,3 +1,28 @@
+# Lot 4 — Exit Gate final (V0 local et synthétique)
+
+**Décision : CLOSED — uniquement pour le périmètre V0 local et synthétique.**
+**Date : 27 novembre 2026.**
+**Preuve CI :** GitHub Actions [run 46001502586](https://github.com/TDP-ops/tdp-ai-handoff-integrity-monitor/actions/runs/46001502586), SHA `a63da5523de08665427c7bd0d2517b4bf801f1c1`, **SUCCESS**. Les logs bruts consultés montrent **242 tests réussis** et **155 scénarios synthétiques** : TP=69, FP=0, FN=0, TN=20 et 66 abstentions `UNKNOWN` explicitement non scorées. Les taux ne sont pas extrapolables à des données clients ni à la production. Les couvertures des modules core, journey, lineage et validation sont respectivement 91,5 %, 91,0 %, 90,5 % et 98,5 % ; ce ne sont pas les couvertures de tous les parseurs.
+
+## Conditions de sortie remplies
+
+- Les contrats, exigences, versions, transformations déclarées, remplacements/rejets, hashes locaux et priorités de verdicts sont évalués sur des cas adversariaux exécutables.
+- Les vérifications structurelles/qualité typées déclarées sont exécutables pour les sous-formats explicitement documentés ; les formats non supportés et les preuves absentes produisent `UNKNOWN`, jamais un `PASS` indu.
+- Le contrôle manquant `text_required_segment_sha256` dispose de son extracteur déterministe et de scénarios positifs/négatifs.
+- Le mode opt-in `journey_mode: dag` couvre forks/joins, cycle, replay, arêtes absentes et ordre arbitraire de présentation, en maintenant le V0 linéaire par défaut.
+- Le nouveau `max_attempts` permet une réconciliation **bornée et déclarative** des retries DAG : identité de tentative, chaînage au handoff précédent, invariance du contenu/contrat et contrôles de duplication. Toute incohérence déclenche `ALERT` ; les reprises cohérentes restent `UNKNOWN` sans preuve indépendante.
+- Le résultat de la CI et les effectifs de la matrice sont vérifiés directement dans les logs, pas seulement supposés à partir de l'état vert.
+
+## Limites et suite obligatoire
+
+**La clôture ne certifie pas une réception effective par un agent tiers, une autorisation de retry authentifiée, une qualité sémantique complète, une protection contre les modifications concurrentes des fichiers, ni une exploitation en production.** Les références, politiques et chemins restent fournis par l'appelant. Les variantes de formats non prises en charge doivent continuer de s'abstenir. La couverture du corpus adversarial ne représente pas le risque réel.
+
+**Lot 5, à ouvrir ensuite :** adaptateurs de preuve indépendants côté récepteur, provenance/custody, attestation des références et autorisations, anti-replay inter-acteurs et Exit Gate correspondant. **Lot 6 ensuite :** démonstration publique Hugging Face avec données synthétiques. Aucun accès client ou service payant requis pour déclarer la clôture du lot 4.
+
+**Statut : CLÔTURE V0 LOCALE APPROUVÉE POUR PASSAGE AU LOT 5.** Le contrôle de réception réelle demeure non implémenté et ne doit pas être sous-entendu par la mention « lot 4 terminé ».
+
+---
+
 ## Lot 4 — Retry reconciliation (27 November 2026; final gate verification)
 
 **Implementation:** optional, backward-compatible `contract.max_attempts` (default 1, bounded to 5) and `event.attempt_number` / `event.retry_of_handoff_id` let the opt-in DAG comparison resolve multiple observations on one contract edge. An accepted declared retry requires unique event/handoff IDs, consecutive 1-based attempt numbers, a linked previous handoff ID, matching retry metadata across sender/receiver, and no changes to artifact identity, version, digest or required checks. Extra attempts, missing or duplicated indices, wrong predecessor, altered payload or replay are **ALERT** (schema-invalid retries can be `INVALID_MANIFEST`). Only the final coherent attempt is used for DAG fork/join continuity; all attempts still undergo the handoff comparator.
