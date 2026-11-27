@@ -46,6 +46,14 @@ An optional caller-supplied `seen_receipt_ids` set checks local replay claims, b
 - **Operational requirement not completed:** a verifier administrator must establish the fingerprint using an independently authenticated channel **before** trusting a receiver's signed receipts; receiver key custody, permissions and key lifecycle must be tested across truly separate hosts/administrative domains. No private key, customer artifact or external service is used in this tranche.
 - **Lot 5 Exit Gate remains OPEN** until those real boundaries and authorization controls are demonstrated. Green CI only proves the synthetic tests and cannot be presented as verified remote custody.
 
+### Tranche 5 — interface exécutable récepteur / vérificateur (27 novembre 2026)
+
+`python -m handoff_monitor.receiver_cli` fournit quatre commandes sans service externe : `receiver-init` (génération de clé Ed25519 privée, fichier 0600 sous POSIX, et clé publique séparée), `receiver-sign` (signature des octets locaux et du contexte d'un handoff), `verifier-enroll` (registre SQLite avec empreinte publique pré-approuvée), et `verifier-verify` (validation du reçu contre un contexte attendu propre au vérificateur et protection durable anti-replay).
+
+Le test `tests/test_lot5_receiver_cli.py` lance chaque opération dans un sous-processus Python distinct, avec espaces de fichiers séparés : refuse un pin erroné, la réinitialisation d'une clé existante, les preuves incomplètes et les replays. Une commande vérificateur utilise seulement la clé **publique** et un document de contexte attendu, sans accès à la clé privée du récepteur.
+
+**Délimitation :** le banc de test crée lui-même le pin de la clé éphémère ; il ne prouve pas l'authentification indépendante d'une identité organisationnelle, ni un transfert réseau entre machines contrôlées séparément. En production, le vérificateur doit approuver et enregistrer le pin par un canal distinct et fiable **avant** l'enrôlement. Les permissions, la propriété des clés, les transports et les politiques ne sont pas attestés par cette CI. Le lot 5 demeure **OPEN** tant qu'un vrai essai de séparation administrative et de transfert n'est pas exécuté.
+
 ### Next Lot 5 work (based on original plan)
 
 1. Define and test a receiver-boundary adapter invoking this primitive **on the actual recipient**, with separately trusted sender/receiver identities and key provisioning.
