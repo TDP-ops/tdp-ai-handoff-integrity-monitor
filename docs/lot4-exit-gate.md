@@ -1,3 +1,15 @@
+## Lot 4 — Retry reconciliation (27 November 2026; final gate verification)
+
+**Implementation:** optional, backward-compatible `contract.max_attempts` (default 1, bounded to 5) and `event.attempt_number` / `event.retry_of_handoff_id` let the opt-in DAG comparison resolve multiple observations on one contract edge. An accepted declared retry requires unique event/handoff IDs, consecutive 1-based attempt numbers, a linked previous handoff ID, matching retry metadata across sender/receiver, and no changes to artifact identity, version, digest or required checks. Extra attempts, missing or duplicated indices, wrong predecessor, altered payload or replay are **ALERT** (schema-invalid retries can be `INVALID_MANIFEST`). Only the final coherent attempt is used for DAG fork/join continuity; all attempts still undergo the handoff comparator.
+
+**Trust boundary:** `max_attempts` expresses *claimed policy in a caller-supplied plan*, not cryptographically verified authorization. Therefore even a coherent declared retry yields **UNKNOWN**, never remotely authenticated PASS. Remote provenance and independently verified policy enforcement remain assigned to Lot 5.
+
+**Evaluation:** 8 new adversarial scenarios (2 coherent but evidence-limited `UNKNOWN`, 6 violations `ALERT`). Expected corpus **155** scenarios: 69 known violations, 20 locally clean controls, 66 abstentions. The CI SHA validating this build must be checked before applying the Exit Gate decision.
+
+**Exit Gate decision discipline:** Lot 4 can close *only* for the explicitly bounded synthetic/local V0 scope once the latest CI and matrix are confirmed; this does not certify production readiness or authenticated end-to-end handoffs. Preserve broader parser limitations and the planned independent receiver evidence for Lot 5.
+
+---
+
 ## Graphes DAG V0 explicitement activés — contrôle en cours, dernière CI à confirmer
 
 Le plan V0 conserve par défaut `journey_mode: linear`; une extension **optionnelle** `journey_mode: dag` interprète uniquement les arêtes des contrats. Le chemin strict `compare_journey_validated` route vers `compare_dag_journey` sans réordonner ou altérer le comportement linéaire historique. Le vérificateur DAG contrôle les arêtes attendues, la présence unique de chaque frontière, les cycles et composants déconnectés, les ID d'événements rejoués, la propagation d'artefacts aux forks et les conflits d'identité/version aux joins. L'ordre de présentation des handoffs est sans effet pour un graphe déclaré cohérent.
