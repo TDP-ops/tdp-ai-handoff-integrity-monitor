@@ -35,10 +35,13 @@ class DurableRegistryTests(unittest.TestCase):
             to_step="B", sent_event_id="E1", received_event_id="E2",
             artifact_id="ART1", artifact_version_id="V1",
             attempt_number=1)
-        self.expected = {k: self.params[k] for k in (
+        self.expected = {"receiver_id": "B",
+                         "content_sha256": __import__("hashlib").sha256(
+                             self.payload.read_bytes()).hexdigest(),
+                         **{k: self.params[k] for k in (
             "run_id", "handoff_id", "contract_id", "contract_version",
             "from_step", "to_step", "sent_event_id", "received_event_id",
-            "artifact_id", "artifact_version_id", "attempt_number")}
+            "artifact_id", "artifact_version_id", "attempt_number")}}
 
     def receipt(self, **overrides):
         params = dict(self.params)
