@@ -37,3 +37,26 @@ jobs:
         run: .venv/bin/python scripts/measure_engine_coverage.py
       - name: Measure lot 4 synthetic adversarial outcomes
         run: .venv/bin/python scripts/measure_lot4_adversarial.py
+      - name: Build static Hugging Face demo from actual synthetic outcomes
+        run: |
+          .venv/bin/python scripts/build_lot6_demo.py
+          test -s demo/dist/README.md
+          test -s demo/dist/index.html
+          test -s demo/dist/report.json
+      - name: Verify static Space package and public dataset
+        run: |
+          .venv/bin/python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("demo/dist")
+          assert sorted(p.name for p in root.iterdir()) == ["README.md", "index.html", "report.json"]
+          readme = (root/"README.md").read_text()
+          html = (root/"index.html").read_text()
+          report = json.loads((root/"report.json").read_text())
+          assert readme.startswith("---\n") and "sdk: static" in readme and "app_file: index.html" in readme
+          assert "fetch(\"./report.json\"" in html
+          assert report["total_cases"] == 155 and len(report["cases"]) == 155
+          assert report["counts"]["TP"] == 69 and report["counts"]["abstentions_unscored"] == 66
+          assert len(report["source_commit"]) == 40
+          assert not any("private_key" in p.name or "secret" in p.name for p in root.iterdir())
+          PY
