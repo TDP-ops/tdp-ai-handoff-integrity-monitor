@@ -43,6 +43,20 @@ jobs:
           test -s demo/dist/README.md
           test -s demo/dist/index.html
           test -s demo/dist/report.json
+      - name: Validate browser JavaScript syntax (no external dependencies)
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          html = Path("demo/dist/index.html").read_text(encoding="utf-8")
+          assert html.count("<script>") == 1 and html.count("</script>") == 1
+          script = html.split("<script>", 1)[1].split("</script>", 1)[0]
+          assert "innerHTML" not in script
+          assert 'fetch("./report.json"' in script
+          assert 'textContent' in script
+          Path("/tmp/tdp-demo-script.js").write_text(script, encoding="utf-8")
+          PY
+          node --check /tmp/tdp-demo-script.js
       - name: Verify static Space package and public dataset
         run: |
           .venv/bin/python - <<'PY'
