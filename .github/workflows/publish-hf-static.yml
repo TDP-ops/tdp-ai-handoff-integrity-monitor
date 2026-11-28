@@ -1,0 +1,71 @@
+name: Publish static demo to Hugging Face (manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hf-static-demo
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build, validate and publish synthetic Space
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout pinned source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Check credentials and preexisting Space name
+        env:
+          HF_SPACE: ${{ vars.HF_SPACE }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          if [ -z "$HF_SPACE" ] || [ -z "$HF_TOKEN" ]; then
+            echo "::error::Configure repository variable HF_SPACE and secret HF_TOKEN before manually dispatching"
+            exit 1
+          fi
+          python3 - <<'PY'
+          import os,re
+          space = os.environ["HF_SPACE"]
+          assert re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,95}/[A-Za-z0-9][A-Za-z0-9_.-]{0,95}",space), "HF_SPACE must be namespace/name"
+          PY
+      - name: Prepare reproducible evaluation environment
+        run: |
+          python3 -m venv .venv
+          .venv/bin/python -m pip install 'jsonschema==4.23.0'
+          .venv/bin/python -m pip install -r requirements-image-ssim.txt
+          .venv/bin/python -m pip install -r requirements-receiver-evidence.txt
+      - name: Gate publication on all local tests
+        run: .venv/bin/python -m unittest discover -s tests -p 'test_*.py'
+      - name: Build allowlisted static Space
+        run: .venv/bin/python scripts/build_lot6_demo.py
+      - name: Publish only the three reviewed public files to preexisting Space
+        env:
+          HF_SPACE: ${{ vars.HF_SPACE }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          .venv/bin/python -m pip install 'huggingface_hub==2.5.0'
+          .venv/bin/python - <<'PY'
+          import os
+          from pathlib import Path
+          from huggingface_hub import HfApi
+          space = os.environ["HF_SPACE"]
+          published = Path("demo/dist")
+          names = sorted(path.name for path in published.iterdir())
+          assert names == ["README.md", "index.html", "report.json"], names
+          api = HfApi(token=os.environ["HF_TOKEN"])
+          api.repo_info(repo_id=space, repo_type="space")  # Must already exist.
+          api.upload_folder(
+              repo_id=space,
+              repo_type="space",
+              folder_path=str(published),
+              allow_patterns=["README.md", "index.html", "report.json"],
+              commit_message="Publish synthetic TDP AI Handoff Integrity Monitor demo",
+          )
+          print("Published reviewed static files to the configured Hugging Face Space.")
+          PY
