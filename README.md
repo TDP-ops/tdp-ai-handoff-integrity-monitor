@@ -40,6 +40,10 @@ The planned development sequence is:
 5. Receiver-side evidence adapters
 6. Static Hugging Face demonstration
 
+## Hugging Face demo (Lot 6)
+
+The [Static Space demo](docs/lot6-hugging-face-demo.md) is implemented on GitHub and generated from real CI synthetic results. **Publication to Hugging Face requires the account holder to create a Static Space and configure a scoped GitHub Actions secret; no external Space deployment is claimed yet.** The manually triggered `Publish static demo to Hugging Face (manual)` workflow publishes only the reviewed static page, read-only synthetic report, and Hugging Face README. Lot 5 independent receiver custody remains open.
+
 ## Open-source attribution
 
 Upstream projects are being evaluated; **no third-party source code has been copied into this repository**. Any future reuse must be reviewed for license compliance, dependency cost, and test coverage.
